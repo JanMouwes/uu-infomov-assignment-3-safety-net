@@ -11,7 +11,7 @@ namespace Tmpl8 {
 
 // pixel operations
 
-// ScaleColor: change the intensity of red, green and blue using a single
+// ScaleColor: change the intensity of alpha, red, green and blue using a single
 // fixed-point scale in the range 0..256, where 256 is 100%.
 inline uint ScaleColor( const uint c, const uint scale )
 {

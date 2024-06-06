@@ -26,7 +26,9 @@ Sprite::Sprite(const char* fileName)
     for (int i = 0; i < frameSize * frameSize; i++)
     {
         pixels[i] &= 0xffffff;
+        // Eliminate MAGENTA, make it transparent (see tanks.png)
         if (pixels[i] == 0xff00ff) pixels[i] = 0;
+        // not transparent, so 100% opaque
         else pixels[i] |= 0xff000000;
     }
 }
@@ -153,7 +155,7 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
 {
     // save the area of target that we are about to overwrite
     if (!backup) backup = new uint[sqr(sprite->frameSize + 1)];
-    int2 intPos = make_int2(pos);
+    const int2 intPos = make_int2(pos);
     int x1 = intPos.x - sprite->frameSize / 2, x2 = x1 + sprite->frameSize;
     int y1 = intPos.y - sprite->frameSize / 2, y2 = y1 + sprite->frameSize;
     if (x1 < 0 || y1 < 0 || x2 >= target->width || y2 >= target->height)
@@ -168,33 +170,39 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
     lastPos = make_int2(x1, y1);
     lastTarget = target;
     // calculate bilinear weights - these are constant in this case.
-    uint frac_x = (int)(255.0f * (pos.x - floorf(pos.x)));
-    uint frac_y = (int)(255.0f * (pos.y - floorf(pos.y)));
-    uint w0 = (frac_x * frac_y) >> 8;
-    uint w1 = ((255 - frac_x) * frac_y) >> 8;
-    uint w2 = (frac_x * (255 - frac_y)) >> 8;
-    uint w3 = ((255 - frac_x) * (255 - frac_y)) >> 8;
+    const uint frac_x = (int)(255.0f * (pos.x - floorf(pos.x)));
+    const uint frac_y = (int)(255.0f * (pos.y - floorf(pos.y)));
+    const uint alpha_weight_0 = (frac_x * frac_y) >> 8;
+    const uint alpha_weight_1 = ((255 - frac_x) * frac_y) >> 8;
+    const uint alpha_weight_2 = (frac_x * (255 - frac_y)) >> 8;
+    const uint alpha_weight_3 = ((255 - frac_x) * (255 - frac_y)) >> 8;
     // draw the sprite frame
-    uint stride = sprite->frameCount * sprite->frameSize;
+    const uint stride = sprite->frameCount * sprite->frameSize;
+
+    // top-to-bottom
     for (int v = 0; v < sprite->frameSize - 1; v++)
     {
         uint* dst = target->pixels + x1 + (y1 + v) * target->width;
         if (sprite->scaledPixels)
         {
-            uint o = frame * sprite->frameSize + v * stride;
-            uint* src0 = sprite->scaledPixels[w0] + o;
-            uint* src1 = sprite->scaledPixels[w1] + o;
-            uint* src2 = sprite->scaledPixels[w2] + o;
-            uint* src3 = sprite->scaledPixels[w3] + o;
+            const uint offset = frame * sprite->frameSize + v * stride;
+
+            // get lookup tables
+            const uint* src0 = sprite->scaledPixels[alpha_weight_0] + offset;
+            const uint* src1 = sprite->scaledPixels[alpha_weight_1] + offset;
+            const uint* src2 = sprite->scaledPixels[alpha_weight_2] + offset;
+            const uint* src3 = sprite->scaledPixels[alpha_weight_3] + offset;
+
+            // left-to-right
             for (int u = 0; u < sprite->frameSize - 1; u++)
             {
                 const uint p0 = src0[u];
                 const uint p1 = src1[u + 1];
                 const uint p2 = src2[u + stride];
                 const uint p3 = src3[u + stride + 1];
-                const uint pix = p0 + p1 + p2 + p3;
-                const uint alpha = pix >> 24;
-                dst[u] = ScaleColor(pix, alpha) + ScaleColor(dst[u], 255 - alpha);
+                const uint pix_colour_argb = p0 + p1 + p2 + p3;
+                const uint alpha = pix_colour_argb >> 24;
+                dst[u] = ScaleColor(pix_colour_argb, alpha) + ScaleColor(dst[u], 255 - alpha);
             }
         }
         else
@@ -203,12 +211,12 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
             uint* src = sprite->pixels + frame * sprite->frameSize + v * stride;
             for (int u = 0; u < sprite->frameSize - 1; u++, src++, dst++)
             {
-                uint p0 = ScaleColor(src[0], w0);
-                uint p1 = ScaleColor(src[1], w1);
-                uint p2 = ScaleColor(src[stride], w2);
-                uint p3 = ScaleColor(src[stride + 1], w3);
-                uint pix = p0 + p1 + p2 + p3;
-                uint alpha = pix >> 24;
+                const uint p0 = ScaleColor(src[0], alpha_weight_0);
+                const uint p1 = ScaleColor(src[1], alpha_weight_1);
+                const uint p2 = ScaleColor(src[stride], alpha_weight_2);
+                const uint p3 = ScaleColor(src[stride + 1], alpha_weight_3);
+                const uint pix = p0 + p1 + p2 + p3;
+                const uint alpha = pix >> 24;
                 if (alpha) *dst = ScaleColor(pix, alpha) + ScaleColor(*dst, 255 - alpha);
             }
         }

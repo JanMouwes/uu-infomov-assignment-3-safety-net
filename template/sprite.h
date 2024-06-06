@@ -9,8 +9,23 @@ namespace Tmpl8
         Sprite(const char* fileName, int2 topLeft, int2 bottomRight, int size, int frames);
         Sprite(const char* fileName, int frames);
         void ScaleAlpha(uint scale);
-        uint *pixels, **scaledPixels = 0;
-        int frameCount, frameSize;
+        /**
+         * Pixel ARGB-colour values
+         */
+        uint *pixels;
+        /**
+         * 'Scale Lookup Table', goes from scale to 'Pixel Lookup Table'
+         * Map<scale, Map<pixel index, scaled colour>>
+         */
+        uint **scaledPixels = 0;
+        /**
+         * Number of frames in the animation.
+         */
+        int frameCount;
+        /**
+         * Width per frame in the animation, in pixels.
+         */
+        int frameSize;
         int **left, **right;
     };
 
