@@ -1,5 +1,7 @@
 #include "precomp.h"
 
+#define USE_SCALED_PIXELS 0
+
 uint ReadBilerp(Surface& bitmap, float u, float v)
 {
     // read from a bitmap with bilinear interpolation.
@@ -28,7 +30,7 @@ Sprite::Sprite(const char* fileName)
         pixels[i] &= 0xffffff;
         // Eliminate MAGENTA, make it transparent (see tanks.png)
         if (pixels[i] == 0xff00ff) pixels[i] = 0;
-        // not transparent, so 100% opaque
+            // not transparent, so 100% opaque
         else pixels[i] |= 0xff000000;
     }
 }
@@ -164,18 +166,19 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
         lastTarget = 0;
         return;
     }
-    for (int v = 0; v < sprite->frameSize; v++) memcpy(backup + v * sprite->frameSize,
-                                                       target->pixels + x1 + (y1 + v) * target->width,
-                                                       sprite->frameSize * 4);
+    for (int v = 0; v < sprite->frameSize; v++)
+        memcpy(backup + v * sprite->frameSize,
+               target->pixels + x1 + (y1 + v) * target->width,
+               sprite->frameSize * 4);
     lastPos = make_int2(x1, y1);
     lastTarget = target;
     // calculate bilinear weights - these are constant in this case.
     const uint frac_x = (int)(255.0f * (pos.x - floorf(pos.x)));
     const uint frac_y = (int)(255.0f * (pos.y - floorf(pos.y)));
-    const uint alpha_weight_0 = (frac_x * frac_y) >> 8;
-    const uint alpha_weight_1 = ((255 - frac_x) * frac_y) >> 8;
-    const uint alpha_weight_2 = (frac_x * (255 - frac_y)) >> 8;
-    const uint alpha_weight_3 = ((255 - frac_x) * (255 - frac_y)) >> 8;
+    const uint interpol_weight_0 = (frac_x * frac_y) >> 8;
+    const uint interpol_weight_1 = ((255 - frac_x) * frac_y) >> 8;
+    const uint interpol_weight_2 = (frac_x * (255 - frac_y)) >> 8;
+    const uint interpol_weight_3 = ((255 - frac_x) * (255 - frac_y)) >> 8;
     // draw the sprite frame
     const uint stride = sprite->frameCount * sprite->frameSize;
 
@@ -183,15 +186,16 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
     for (int v = 0; v < sprite->frameSize - 1; v++)
     {
         uint* dst = target->pixels + x1 + (y1 + v) * target->width;
+#if USE_SCALED_PIXELS
         if (sprite->scaledPixels)
         {
-            const uint offset = frame * sprite->frameSize + v * stride;
+            const uint row_origin = frame * sprite->frameSize + v * stride;
 
             // get lookup tables
-            const uint* src0 = sprite->scaledPixels[alpha_weight_0] + offset;
-            const uint* src1 = sprite->scaledPixels[alpha_weight_1] + offset;
-            const uint* src2 = sprite->scaledPixels[alpha_weight_2] + offset;
-            const uint* src3 = sprite->scaledPixels[alpha_weight_3] + offset;
+            const uint* src0 = sprite->scaledPixels[interpol_weight_0] + row_origin;
+            const uint* src1 = sprite->scaledPixels[interpol_weight_1] + row_origin;
+            const uint* src2 = sprite->scaledPixels[interpol_weight_2] + row_origin;
+            const uint* src3 = sprite->scaledPixels[interpol_weight_3] + row_origin;
 
             // left-to-right
             for (int u = 0; u < sprite->frameSize - 1; u++)
@@ -206,15 +210,16 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
             }
         }
         else
+#endif
         {
             // fallback
             uint* src = sprite->pixels + frame * sprite->frameSize + v * stride;
             for (int u = 0; u < sprite->frameSize - 1; u++, src++, dst++)
             {
-                const uint p0 = ScaleColor(src[0], alpha_weight_0);
-                const uint p1 = ScaleColor(src[1], alpha_weight_1);
-                const uint p2 = ScaleColor(src[stride], alpha_weight_2);
-                const uint p3 = ScaleColor(src[stride + 1], alpha_weight_3);
+                const uint p0 = ScaleColor(src[0], interpol_weight_0);
+                const uint p1 = ScaleColor(src[1], interpol_weight_1);
+                const uint p2 = ScaleColor(src[stride], interpol_weight_2);
+                const uint p3 = ScaleColor(src[stride + 1], interpol_weight_3);
                 const uint pix = p0 + p1 + p2 + p3;
                 const uint alpha = pix >> 24;
                 if (alpha) *dst = ScaleColor(pix, alpha) + ScaleColor(*dst, 255 - alpha);
@@ -236,9 +241,10 @@ void SpriteInstance::DrawAdditive(Surface* target, float2 pos, int frame)
         lastTarget = 0;
         return;
     }
-    for (int v = 0; v < sprite->frameSize; v++) memcpy(backup + v * sprite->frameSize,
-                                                       target->pixels + x1 + (y1 + v) * target->width,
-                                                       sprite->frameSize * 4);
+    for (int v = 0; v < sprite->frameSize; v++)
+        memcpy(backup + v * sprite->frameSize,
+               target->pixels + x1 + (y1 + v) * target->width,
+               sprite->frameSize * 4);
     // draw the sprite frame
     for (int v = 0; v < sprite->frameSize; v++)
         for (int u = 0; u < sprite->frameSize; u++)
