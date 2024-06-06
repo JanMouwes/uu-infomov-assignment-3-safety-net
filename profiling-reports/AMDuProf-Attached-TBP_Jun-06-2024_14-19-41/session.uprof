@@ -1,0 +1,358 @@
+{
+    "auxiliary": {
+        "cores": 12,
+        "cpuFamily": 25,
+        "cpuModel": 33,
+        "cpuTopology": [
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                2,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                3,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                4,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                5,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                6,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                7,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                8,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                9,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                10,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                11,
+                0,
+                0,
+                0,
+                0
+            ]
+        ],
+        "eventColumnIds": [
+            {
+                "category": 1,
+                "categoryName": "CPU PROFILE",
+                "events": [
+                    {
+                        "callstack": false,
+                        "category": 1,
+                        "cmask": 0,
+                        "description": "CPU Time is the time in which the CPU core is executing the code.",
+                        "encodedId": 562949953478656,
+                        "eventCategory": 2,
+                        "expression": "",
+                        "frequency": 0,
+                        "hwEventId": 57344,
+                        "interval": 1,
+                        "invCmask": false,
+                        "isFrequencyMode": false,
+                        "name": "CPU_TIME",
+                        "opCycleCount": false,
+                        "osMode": false,
+                        "samples": 0,
+                        "threshold": 0,
+                        "unitMask": 0,
+                        "usrMode": false
+                    }
+                ]
+            }
+        ],
+        "guest": false,
+        "guestKallsyms": "",
+        "guestKmodules": "",
+        "guestPid": 0,
+        "guestSymPaths": "",
+        "host": false,
+        "hypervisorEnabled": false,
+        "hypervisorVendor": "",
+        "ibsIdentifiers": 1023,
+        "ibsOpSampling": false,
+        "isCacheline": false,
+        "isFreqMode": false,
+        "osName": "Win1021H1-64",
+        "p0Freq": 0,
+        "profScope": "Single Application",
+        "profiledPids": "7184;"
+    },
+    "categoriesCollected": [
+        "cpu"
+    ],
+    "collectCommand": "AMDuProfCLI.exe collect --config tbp -o C:\\Users\\janmo\\AppData\\Roaming\\AMDuProf\\ -p 7184",
+    "collection": {
+        "branch-filter": 511,
+        "callstack": {
+            "fpo": false,
+            "interval": 1,
+            "scope": 1,
+            "unwindDepth": 128
+        },
+        "dataBufferCount": 512,
+        "events": {
+            "configName": "Time-based Sampling",
+            "configType": 4,
+            "cpuTraceSourceMask": 0,
+            "ibsEvents": {
+                "cacheAnalysis": false,
+                "fetch": false,
+                "fetchCallstack": true,
+                "fetchInterval": 0,
+                "fetchL3Miss": false,
+                "loadStoreOnly": false,
+                "op": false,
+                "opCallstack": true,
+                "opCycleCount": true,
+                "opInterval": 0,
+                "opL3Miss": false,
+                "randomize": true
+            },
+            "pmcEvents": null,
+            "timerCallstack": false,
+            "timerInterval": 1.0
+        },
+        "flags": {
+            "cssDefaultValues": false,
+            "defaultBranchAnalysis": false,
+            "hasCallstack": false,
+            "maxDataFileSize": 0,
+            "perEventCSSDefault": false,
+            "profileMpi": false,
+            "pythonTraceOptions": false,
+            "traceMpi": false,
+            "traceOpenmp": false,
+            "traceOpenmpMode": 0
+        },
+        "globalFrequency": 0,
+        "globalSamplingInterval": 0,
+        "lbr": false,
+        "livePower": null,
+        "mmapBuffer": 0,
+        "profileConfigFiles": [
+            "tbp"
+        ],
+        "schedule": {
+            "categoryDurations": [
+                {
+                    "category": 1,
+                    "categoryName": "CPU PROFILE",
+                    "end": 614233726865100,
+                    "start": 614167359993200,
+                    "type": 0
+                }
+            ],
+            "elapsed": 66367,
+            "end": 614233726865100,
+            "endTs": "Thu Jun  6 14:20:47 2024",
+            "hostDurations": [
+                {
+                    "end": 614233726865100,
+                    "host": "Jans-home-PC",
+                    "start": 614167359993200
+                }
+            ],
+            "profileCollectionDataLimitType": 1,
+            "profileDuration": 0,
+            "start": 614167359993200,
+            "startDelay": 0,
+            "startTs": "Thu Jun  6 14:19:41 2024",
+            "type": 1
+        },
+        "sessionVersion": 5,
+        "target": {
+            "appArgs": "",
+            "attachedProcesses": [
+                {
+                    "arch": 1,
+                    "args": "",
+                    "path": "C:\\Users\\janmo\\RiderProjects\\uu-infomov-assignment-3-safety-net\\x64\\TankGame.exe",
+                    "platform": 0,
+                    "processId": 7184
+                }
+            ],
+            "coreAffinity": "FFF",
+            "coreMask": "FFF",
+            "gpuFamily": "",
+            "launchApp": "",
+            "profileCores": false,
+            "systemWide": false,
+            "terminateApp": false,
+            "workingDir": "C:\\Program Files\\AMD\\AMDuProf"
+        }
+    },
+    "deviceInfo": {
+        "keys": [
+            0
+        ],
+        "values": [
+            {
+                "keys": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11
+                ],
+                "values": [
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ],
+                    [
+                        0,
+                        3701000000
+                    ]
+                ]
+            }
+        ]
+    },
+    "generatedDBs": [
+        {
+            "category": 1,
+            "categoryName": "cpu",
+            "databaseName": "cpu"
+        }
+    ],
+    "hpc": {
+        "hostName": "Jans-home-PC"
+    },
+    "profileType": 1,
+    "translateCommand": "AMDuProfCLI.exe translate --agg-interval 1024 --symbol-cache-dir C:\\Users\\janmo\\Downloads\\\\AMDuProf ",
+    "translation": [
+        {
+            "aggregateCoreLevel": false,
+            "aggregateInst": true,
+            "aggregateInterval": 1,
+            "asciiFlags": 0,
+            "cachePath": "C:\\Users\\janmo\\Downloads\\\\AMDuProf",
+            "category": 1,
+            "categoryNames": "CPU PROFILE",
+            "dataCoarsenessLevel": 1,
+            "debugSymbolsPath": "",
+            "hostName": "",
+            "mpiInputDir": "C:\\Users\\janmo\\AppData\\Roaming\\AMDuProf\\AMDuProf-TBP-AttachProcess\\AMDuProf-Attached-TBP_Jun-06-2024_14-19-41\\cpu",
+            "processInlineFunctions": false,
+            "summaryTimelineSz": 5000,
+            "symbolServerDirs": "",
+            "useLegacySymbolDowloader": false
+        }
+    ]
+}
