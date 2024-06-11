@@ -1,11 +1,19 @@
 #include "precomp.h"
 #include "game.h"
+#include "entity.h"
 
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
+    physicals.resize(MAX_ENTITIES);
+    visuals.resize(MAX_ENTITIES);
+    animations.resize(MAX_ENTITIES);
+    attacks.resize(MAX_ENTITIES);
+    collisions.resize(MAX_ENTITIES);
+    lifetimes.resize(MAX_ENTITIES);
+    
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), 36, 256);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), 36, 256);

@@ -323,7 +323,7 @@ SpriteExplosion::SpriteExplosion(Bullet* bullet)
 }
 
 // Particle constructor
-Particle::Particle( Sprite* s, int2 p, uint c, uint d )
+Particle::Particle(Sprite* s, int2 p, uint c, uint d)
 {
 	physical.pos = make_float2( p );
 	physical.dir = make_float2( -1 - RandomFloat() * 4, 0 );
