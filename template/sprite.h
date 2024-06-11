@@ -12,12 +12,12 @@ namespace Tmpl8
         /**
          * Pixel ARGB-colour values
          */
-        uint *pixels;
+        uint* pixels;
         /**
          * 'Scale Lookup Table', goes from scale to 'Pixel Lookup Table'
          * Map<scale, Map<pixel index, scaled colour>>
          */
-        uint **scaledPixels = 0;
+        uint** scaledPixels = 0;
         /**
          * Number of frames in the animation.
          */

@@ -135,7 +135,14 @@ void Game::Tick(float deltaTime)
             i--;
         }
     coolDown++;
-    for (int s = (int)actorPool.size(), i = 0; i < s; i++) actorPool[i]->Draw();
+
+    //for (int s = (int)actorPool.size(), i = 0; i < s; i++) actorPool[i]->Draw();
+    for (int s = (int)actorPool.size(), i = 0; i < s; i++)
+    {
+        // spritePool[i]->Draw();
+        actorPool[i]->Draw();
+    }
+
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);

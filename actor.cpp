@@ -1,14 +1,19 @@
 #include "precomp.h"
 #include "game.h"
 
+Actor::Actor(Drawable drawable)
+{
+	this->drawable = drawable;
+}
+
 // Tank constructor
-Tank::Tank( Sprite* s, int2 p, int2 t, int f, int a )
+Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a): Actor(init_drawable(make_float2(p), s))
 {
 	// set position and destination
-	pos = make_float2( p );
-	target = make_float2( t );
+	pos = this->drawable.pos;
+	target = make_float2(t);
 	// create sprite instance based on existing sprite
-	sprite = SpriteInstance( s );
+	sprite = SpriteInstance(s);
 	// set intial orientation / sprite frame; 0: north; 64: east; 128: south; 192: east
 	frame = f;
 	// assign tank to the specified army
@@ -17,7 +22,7 @@ Tank::Tank( Sprite* s, int2 p, int2 t, int f, int a )
 	if (directions == 0)
 	{
 		directions = new float2[256];
-		for (int i = 0; i < 256; i++) directions[i] = make_float2( sinf( i * PI / 128 ), -cosf( i * PI / 128 ) );
+		for (int i = 0; i < 256; i++) directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
 	}
 	// set direction based on specified orientation
 	dir = directions[frame];
@@ -100,7 +105,7 @@ bool Tank::Tick()
 }
 
 // Bullet constructor
-Bullet::Bullet( int2 p, int f, int a )
+Bullet::Bullet( int2 p, int f, int a ): Actor(init_drawable(make_float2(p), nullptr))
 {
 	// set position and direction
 	pos = make_float2( p );
@@ -116,6 +121,7 @@ Bullet::Bullet( int2 p, int f, int a )
 	}
 	// create sprite instances based on the static sprite data
 	sprite = SpriteInstance( bullet );
+	this->drawable.sprite = bullet;
 	flashSprite = SpriteInstance( flash );
 }
 
@@ -171,7 +177,7 @@ void Bullet::Draw()
 }
 
 // ParticleExplosion constructor
-ParticleExplosion::ParticleExplosion( Tank* tank )
+ParticleExplosion::ParticleExplosion(Tank* tank): Actor(init_drawable(tank->pos, tank->sprite.sprite))
 {
 	// read the pixels from the sprite of the specified tank
 	Sprite* sprite = tank->sprite.sprite;
@@ -241,10 +247,11 @@ void ParticleExplosion::Remove()
 }
 
 // SpriteExplosion constructor
-SpriteExplosion::SpriteExplosion( Bullet* bullet )
+SpriteExplosion::SpriteExplosion( Bullet* bullet ): Actor(init_drawable(bullet->pos, 0))
 {
 	// load the static sprite data if it doesn't exist yet
 	if (!anim) anim = new Sprite( "assets/explosion1.png", 16 );
+	this->drawable.sprite = anim;
 	// set member variables
 	sprite = SpriteInstance( anim );
 	pos = bullet->pos;

@@ -126,6 +126,7 @@
     <ClCompile Include="game.cpp" />
     <ClCompile Include="grid.cpp" />
     <ClCompile Include="map.cpp" />
+    <ClCompile Include="structs.cpp" />
     <ClCompile Include="template\opencl.cpp" />
     <ClCompile Include="template\opengl.cpp" />
     <ClCompile Include="template\sprite.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="structs.h" />
     <ClInclude Include="template\common.h" />
     <ClInclude Include="template\opencl.h" />
     <ClInclude Include="template\opengl.h" />

@@ -1,4 +1,5 @@
 #pragma once
+#include "structs.h"
 
 namespace Tmpl8
 {
@@ -9,15 +10,20 @@ class Actor
 {
 public:
 	enum { TANK = 0, BULLET, FLAG, PARTICLE_EXPLOSION, SPRITE_EXPLOSION  };
-	Actor() = default;
+	Actor(Drawable drawable);
 	virtual void Remove() { sprite.Remove(); }
 	virtual bool Tick() = 0;
 	virtual uint GetType() = 0;
-	virtual void Draw() { sprite.Draw( Map::bitmap, pos, frame ); }
+	virtual void Draw()
+	{
+		draw_drawable(Map::bitmap, this->drawable, frame);
+	}
 	SpriteInstance sprite;
 	float2 pos, dir;
 	int frame;
 	static inline float2* directions = 0;
+
+	Drawable drawable;
 };
 
 class Tank : public Actor
