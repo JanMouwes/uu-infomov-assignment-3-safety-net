@@ -81,14 +81,14 @@ class Particle
 public:
 	Particle() = default;
 	Particle( Sprite* s, int2 p, uint c, uint d );
-	void Remove() { sprite.Remove(); }
+	void Remove() { visual.sprite.Remove(); }
 	void Tick();
-	void Draw() { sprite.Draw( Map::bitmap, physical.pos, frame ); }
-	uint backup[4], color = 0, frame, frameChange;
+	void Draw() { visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame ); }
+	uint backup[4], color = 0, frameChange;
+	
 	bool hasBackup = false;
-	SpriteInstance sprite;
 
-	// float2 pos, dir;
+	VisualComponent visual;
 	PhysicalComponent physical;
 };
 
