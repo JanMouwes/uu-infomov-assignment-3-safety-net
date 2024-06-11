@@ -164,8 +164,30 @@ void Bullet::Remove()
 // Bullet behaviour
 bool Bullet::Tick()
 {
+	TickPhysics();
+
+	bool isAlive = TickLifetime();
+	if (!isAlive) return isAlive;
+	
+	bool isInBounds = TickBounds();
+	if (!isInBounds) return isInBounds;
+
+	bool notHitAtTank = TickCollision();
+	// When the bullet hits a tank, it dies.
+	if (!notHitAtTank) return notHitAtTank;
+	
+	// stayin' alive
+	return true;
+}
+
+void Bullet::TickPhysics()
+{
 	// update bullet position
 	physical.pos += physical.dir * 8;
+}
+
+bool Bullet::TickLifetime()
+{
 	// destroy bullet if it travelled too long
 	lifetime.age++;
 	if (lifetime.age == 110)
@@ -173,8 +195,17 @@ bool Bullet::Tick()
 		Game::actorPool.push_back( new SpriteExplosion( this ) );
 		return false;
 	}
+	return true;
+}
+
+bool Bullet::TickBounds()
+{
 	// destroy bullet if it leaves the map
-	if (physical.pos.x < 0 || physical.pos.y < 0 || physical.pos.x > Game::map.width || physical.pos.y > Game::map.height) return false;
+	return physical.pos.x < 0 || physical.pos.y < 0 || physical.pos.x > Game::map.width || physical.pos.y > Game::map.height;
+}
+
+bool Bullet::TickCollision()
+{
 	// check if the bullet hit a tank
 	ActorList& tanks = Game::grid.FindNearbyTanks( physical.pos, 0 );
 	for (int s = (int)tanks.count, i = 0; i < s; i++)
@@ -188,7 +219,6 @@ bool Bullet::Tick()
 			return false; // bees die from stinging. Disable for rail gun.
 		}
 	}
-	// stayin' alive
 	return true;
 }
 

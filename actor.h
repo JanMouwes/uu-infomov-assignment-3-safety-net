@@ -54,6 +54,11 @@ public:
 	// int frameCounter, army;
 	AttackComponent attack;
 	LifetimeComponent lifetime;
+private:
+	void TickPhysics();
+	bool TickLifetime();
+	bool TickBounds();
+	bool TickCollision();
 };
 
 class ParticleExplosion : public Actor
