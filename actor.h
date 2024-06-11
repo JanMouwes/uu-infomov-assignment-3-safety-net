@@ -51,6 +51,9 @@ public:
 	bool Tick();
 	void Draw();
 	uint GetType() { return Actor::BULLET; }
+	// TODO: Our current component implementation doesn't allow for the same entity to have multiple sprites. I think we
+	// need to move towards component managers as is described in
+	// https://bitsquid.blogspot.com/2014/08/building-data-oriented-entity-system.html.
 	SpriteInstance flashSprite;
 	static inline Sprite* flash = 0, *bullet = 0;
 
