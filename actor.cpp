@@ -182,19 +182,19 @@ void Bullet::Draw()
 ParticleExplosion::ParticleExplosion(Tank* tank)
 {
 	// read the pixels from the sprite of the specified tank
-	Sprite* sprite = tank->visual.sprite.sprite;
-	uint size = sprite->frameSize;
-	uint stride = sprite->frameSize * sprite->frameCount;
-	uint* src = sprite->pixels + tank->visual.frame * size;
+	const Sprite* sprite = tank->visual.sprite.sprite;
+	const uint size = sprite->frameSize;
+	const uint stride = sprite->frameSize * sprite->frameCount;
+	const uint* src = sprite->pixels + tank->visual.frame * size;
 	for (uint y = 0; y < size; y++) for (uint x = 0; x < size; x++)
 	{
-		uint pixel = src[x + y * stride];
-		uint alpha = pixel >> 24;
+		const uint pixel = src[x + y * stride];
+		const uint alpha = pixel >> 24;
 		if (alpha > 64) for (int i = 0; i < 2; i++) // twice for a denser cloud
 		{
 			color.push_back( pixel & 0xffffff );
-			float fx = tank->physical.pos.x - size * 0.5f + x;
-			float fy = tank->physical.pos.y - size * 0.5f + y;
+			const float fx = tank->physical.pos.x - size * 0.5f + x;
+			const float fy = tank->physical.pos.y - size * 0.5f + y;
 			pos.push_back( make_float2( fx, fy ) );
 			dir.push_back( make_float2( 0, 0 ) );
 		}
@@ -204,12 +204,12 @@ ParticleExplosion::ParticleExplosion(Tank* tank)
 // ParticleExplosion Draw
 void ParticleExplosion::Draw()
 {
-	// create space to backup the map pixels we are about to modify
+	// create space to back up the map pixels we are about to modify
 	if (!backup) backup = new uint[(int)pos.size() * 4];
 	// draw the particles, with bilinear interpolation for smooth movement
 	for (int s = (int)pos.size(), i = 0; i < s; i++)
 	{
-		int2 intPos = make_int2( physical.pos[i] );
+		int2 intPos = make_int2( pos[i] );
 		// backup 2x2 pixels
 		backup[i * 4 + 0] = Game::map.bitmap->Read( intPos.x, intPos.y );
 		backup[i * 4 + 1] = Game::map.bitmap->Read( intPos.x + 1, intPos.y );
@@ -226,7 +226,7 @@ bool ParticleExplosion::Tick()
 	for (int s = (int)pos.size(), i = 0; i < s; i++)
 	{
 		// move by adding particle speed stored in physical.dir
-		pos[i] += physical.dir[i];
+		pos[i] += dir[i];
 		// adjust physical.dir randomly
 		dir[i] -= make_float2( RandomFloat() * 0.05f + 0.02f, RandomFloat() * 0.02f - 0.01f );
 	}
