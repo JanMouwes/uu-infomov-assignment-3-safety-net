@@ -122,6 +122,8 @@
   <!-- END Custom section -->
   <ItemGroup>
     <ClCompile Include="actor.cpp" />
+    <ClCompile Include="component_managers\SpatialManager.cpp" />
+    <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="flag.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="grid.cpp" />
@@ -142,7 +144,9 @@
   <ItemGroup>
     <ClInclude Include="actor.h" />
     <ClInclude Include="cl\tools.cl" />
+    <ClInclude Include="component_managers\SpatialManager.h" />
     <ClInclude Include="entity.h" />
+    <ClInclude Include="EntityManager.h" />
     <ClInclude Include="flag.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="grid.h" />
