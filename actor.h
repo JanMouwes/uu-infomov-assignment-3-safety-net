@@ -16,7 +16,8 @@ public:
 	virtual uint GetType() = 0;
 	virtual void Draw()
 	{
-		draw_drawable(Map::bitmap, this->drawable, frame);
+		sprite.Draw(Map::bitmap, pos, frame);
+		// draw_drawable(Map::bitmap, this->drawable, frame);
 	}
 	SpriteInstance sprite;
 	float2 pos, dir;
