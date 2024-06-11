@@ -10,21 +10,23 @@ class Actor
 {
 public:
 	enum { TANK = 0, BULLET, FLAG, PARTICLE_EXPLOSION, SPRITE_EXPLOSION  };
-	Actor(Drawable drawable);
 	virtual void Remove() { sprite.Remove(); }
 	virtual bool Tick() = 0;
 	virtual uint GetType() = 0;
 	virtual void Draw()
 	{
-		sprite.Draw(Map::bitmap, pos, frame);
-		// draw_drawable(Map::bitmap, this->drawable, frame);
+		// sprite.Draw(Map::bitmap, pos, frame);
+		// GOAL: visual.sprite.Draw(Map::bitmap, physical.pos, visual.frame)
+		visual.sprite.Draw(Map::bitmap, pos, frame);
+
 	}
 	SpriteInstance sprite;
 	float2 pos, dir;
 	int frame;
 	static inline float2* directions = 0;
 
-	Drawable drawable;
+	VisualComponent visual;
+	PhysicalComponent physical;
 };
 
 class Tank : public Actor

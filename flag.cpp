@@ -1,7 +1,7 @@
 #include "precomp.h"
 #include "game.h"
 
-VerletFlag::VerletFlag( int2 location, Surface* pattern ): Actor(init_drawable(make_float2(location), nullptr))
+VerletFlag::VerletFlag( int2 location, Surface* pattern )
 {
 	width = pattern->width;
 	height = pattern->height;

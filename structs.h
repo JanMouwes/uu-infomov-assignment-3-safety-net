@@ -3,6 +3,20 @@
 
 namespace Tmpl8
 {
+    struct PhysicalComponent 
+    {
+        float2 pos;
+        float2 direction;
+        float2 *directions;
+    };
+
+    struct VisualComponent
+    {
+        SpriteInstance sprite;
+        int frame;
+    };
+
+
     struct Drawable
     {
         float2 pos;

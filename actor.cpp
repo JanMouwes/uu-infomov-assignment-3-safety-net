@@ -1,16 +1,11 @@
 #include "precomp.h"
 #include "game.h"
 
-Actor::Actor(Drawable drawable)
-{
-	this->drawable = drawable;
-}
-
 // Tank constructor
-Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a): Actor(init_drawable(make_float2(p), s))
+Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 {
 	// set position and destination
-	pos = this->drawable.pos;
+	pos = make_float2(p);
 	target = make_float2(t);
 	// create sprite instance based on existing sprite
 	sprite = SpriteInstance(s);
@@ -26,6 +21,10 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a): Actor(init_drawable(make_fl
 	}
 	// set direction based on specified orientation
 	dir = directions[frame];
+
+	// Initialize Components
+	visual = { sprite, frame };
+	physical = { pos, dir, directions };
 }
 
 // Tank::Tick : tank behaviour
@@ -105,7 +104,7 @@ bool Tank::Tick()
 }
 
 // Bullet constructor
-Bullet::Bullet( int2 p, int f, int a ): Actor(init_drawable(make_float2(p), nullptr))
+Bullet::Bullet( int2 p, int f, int a )
 {
 	// set position and direction
 	pos = make_float2( p );
@@ -121,8 +120,12 @@ Bullet::Bullet( int2 p, int f, int a ): Actor(init_drawable(make_float2(p), null
 	}
 	// create sprite instances based on the static sprite data
 	sprite = SpriteInstance( bullet );
-	this->drawable.sprite = bullet;
 	flashSprite = SpriteInstance( flash );
+
+	// Initialize Components
+	visual = { sprite, frame };
+	physical = { pos, dir, directions };
+
 }
 
 // Bullet 'undraw': erase previously rendered pixels
@@ -177,7 +180,7 @@ void Bullet::Draw()
 }
 
 // ParticleExplosion constructor
-ParticleExplosion::ParticleExplosion(Tank* tank): Actor(init_drawable(tank->pos, tank->sprite.sprite))
+ParticleExplosion::ParticleExplosion(Tank* tank)
 {
 	// read the pixels from the sprite of the specified tank
 	Sprite* sprite = tank->sprite.sprite;
@@ -197,6 +200,9 @@ ParticleExplosion::ParticleExplosion(Tank* tank): Actor(init_drawable(tank->pos,
 			dir.push_back( make_float2( 0, 0 ) );
 		}
 	}
+
+	// Initialize Components
+	visual = { sprite, frame };
 }
 
 // ParticleExplosion Draw
@@ -247,15 +253,19 @@ void ParticleExplosion::Remove()
 }
 
 // SpriteExplosion constructor
-SpriteExplosion::SpriteExplosion( Bullet* bullet ): Actor(init_drawable(bullet->pos, 0))
+SpriteExplosion::SpriteExplosion( Bullet* bullet )
 {
 	// load the static sprite data if it doesn't exist yet
 	if (!anim) anim = new Sprite( "assets/explosion1.png", 16 );
-	this->drawable.sprite = anim;
 	// set member variables
 	sprite = SpriteInstance( anim );
 	pos = bullet->pos;
 	frame = 0;
+
+	// Initialize Components
+	visual = { sprite, frame };
+	physical = { pos, dir, directions };
+
 }
 
 // Particle constructor
