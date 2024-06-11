@@ -80,7 +80,6 @@ void Tank::TickAttack()
 
 void Tank::TickPhysics()
 {
-	
 	// accumulate forces for steering left or right
 	// 1. target attracts
 	float2 toTarget = normalize( physical.target - physical.pos );
@@ -145,8 +144,10 @@ Bullet::Bullet(int2 p, int f, int a)
 	// This assumes that a tank is constructed before any bullet is constructed.
 	// dir = directions[f];
 	physical = {make_float2(p), 0, directions[f]};
-	frameCounter = 0; // for keeping track of bullet lifetime
-	army = a;
+	// frameCounter = 0; // for keeping track of bullet lifetime
+	lifetime = { 0 };
+	// army = a;
+	attack.army = a;
 	flashSprite = SpriteInstance(flash);
 }
 
@@ -154,7 +155,7 @@ Bullet::Bullet(int2 p, int f, int a)
 void Bullet::Remove()
 {
 	// first visual.frame uses the 'flash' sprite; subsequent visual.frames the bullet sprite
-	if (frameCounter == 1)
+	if (lifetime.age == 1)
 		flashSprite.Remove();
 	else
 		visual.sprite.Remove();
@@ -166,8 +167,8 @@ bool Bullet::Tick()
 	// update bullet position
 	physical.pos += physical.dir * 8;
 	// destroy bullet if it travelled too long
-	frameCounter++;
-	if (frameCounter == 110)
+	lifetime.age++;
+	if (lifetime.age == 110)
 	{
 		Game::actorPool.push_back( new SpriteExplosion( this ) );
 		return false;
@@ -179,7 +180,7 @@ bool Bullet::Tick()
 	for (int s = (int)tanks.count, i = 0; i < s; i++)
 	{
 		Tank* tank = tanks.tank[i]; // a tank, thankfully
-		if (tank->attack.army == this->army) continue; // no friendly fire. Disable for madness.
+		if (tank->attack.army == this->attack.army) continue; // no friendly fire. Disable for madness.
 		float dist = length( this->physical.pos - tank->physical.pos );
 		if (dist < 10)
 		{
@@ -195,7 +196,7 @@ bool Bullet::Tick()
 void Bullet::Draw()
 {
 	// first visual.frame uses the 'flash' sprite; subsequent visual.frames the bullet sprite
-	if (frameCounter == 1 || frameCounter == 159)
+	if (lifetime.age == 1 || lifetime.age == 159)
 		flashSprite.Draw( Map::bitmap, physical.pos, 0 );
 	else
 		visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame );

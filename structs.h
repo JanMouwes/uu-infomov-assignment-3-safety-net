@@ -33,4 +33,12 @@ namespace Tmpl8
     {
         bool hit_by_bullet;
     };
+
+    struct LifetimeComponent
+    {
+        /*
+         * age is the number of ticks since the entity was spawned.
+         */
+        int age;
+    };
 }

@@ -49,8 +49,11 @@ public:
 	void Draw();
 	uint GetType() { return Actor::BULLET; }
 	SpriteInstance flashSprite;
-	int frameCounter, army;
 	static inline Sprite* flash = 0, *bullet = 0;
+
+	// int frameCounter, army;
+	AttackComponent attack;
+	LifetimeComponent lifetime;
 };
 
 class ParticleExplosion : public Actor
