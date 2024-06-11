@@ -225,9 +225,9 @@ bool ParticleExplosion::Tick()
 {
 	for (int s = (int)pos.size(), i = 0; i < s; i++)
 	{
-		// move by adding particle speed stored in physical.dir
+		// move by adding particle speed stored in dir
 		pos[i] += dir[i];
-		// adjust physical.dir randomly
+		// adjust dir randomly
 		dir[i] -= make_float2( RandomFloat() * 0.05f + 0.02f, RandomFloat() * 0.02f - 0.01f );
 	}
 	// fadeout and kill actor when completely faded out
