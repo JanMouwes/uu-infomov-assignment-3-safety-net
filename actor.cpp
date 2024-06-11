@@ -336,14 +336,33 @@ Particle::Particle( Sprite* s, int2 p, uint c, uint d )
 // Particle behaviour
 void Particle::Tick()
 {
+	TickPhysical();
+
+	TickBounds();
+
+	TickPeaksCollision();
+
+	TickAnimate();
+}
+
+void Particle::TickPhysical()
+{
 	physical.pos += physical.dir;
 	physical.dir.y *= 0.95f;
+}
+
+void Particle::TickBounds()
+{
 	if (physical.pos.x < 0)
 	{
 		physical.pos.x = (float)(Game::map.bitmap->width - 1);
 		physical.pos.y = (float)(RandomUInt() % Game::map.bitmap->height);
 		physical.dir = make_float2( -1 - RandomFloat() * 2, 0 );
 	}
+}
+
+void Particle::TickPeaksCollision()
+{
 	for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
 	{
 		float2 toPeak = make_float2( Game::peaks[i].x, Game::peaks[i].y ) - physical.pos;
@@ -352,5 +371,10 @@ void Particle::Tick()
 		physical.dir.y -= toPeak.y * g;
 	}
 	physical.dir.y += RandomFloat() * 0.05f - 0.025f;
+}
+
+void Particle::TickAnimate()
+{
 	visual.frame = (visual.frame + animate.frame_change + 256) & 255;
 }
+

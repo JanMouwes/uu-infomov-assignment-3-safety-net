@@ -101,6 +101,11 @@ public:
 	VisualComponent visual;
 	PhysicalComponent physical;
 	AnimateComponent animate;
+private:
+	void TickPhysical();
+	void TickBounds();
+	void TickPeaksCollision();
+	void TickAnimate();
 };
 
 } // namespace Tmpl8
