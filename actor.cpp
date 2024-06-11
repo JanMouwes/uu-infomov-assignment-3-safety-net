@@ -111,7 +111,7 @@ void Tank::TickPhysics()
 		}
 	}
 	// adjust heading and move
-	movement.velocity = make_float2(1.0f);
+	movement.velocity = make_float2(0.5f);
 	if (steer.steer < -0.2f) visual.frame = (visual.frame + 255 /* i.e. -1 */) & 255, spatial.dir = directions[visual.frame], movement.velocity = make_float2(0.35f);
 	else if (steer.steer > 0.2f) visual.frame = (visual.frame + 1) & 255, spatial.dir = directions[visual.frame], make_float2(0.35f);
 	else {
@@ -122,7 +122,7 @@ void Tank::TickPhysics()
 		Game::map.bitmap->BlendBilerp( trackPos1.x, trackPos1.y, 0, 12 );
 		Game::map.bitmap->BlendBilerp( trackPos2.x, trackPos2.y, 0, 12 );
 	}
-	spatial.pos += spatial.dir * movement.velocity * 0.5f;
+	spatial.pos += spatial.dir * movement.velocity;
 }
 
 // Bullet constructor
