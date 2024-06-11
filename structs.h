@@ -2,14 +2,27 @@
 
 namespace Tmpl8
 {
-    struct PhysicalComponent 
+    struct SpatialComponent 
     {
         float2 pos;
-        float2 target;
         float2 dir;
-        // TODO: make static inline / a proper global LUT
-        float2 *directions;
     };
+
+    struct MovementComponent
+    {
+        float2 velocity;
+    };
+
+    struct SteerComponent
+    {
+        float steer;
+    };
+
+    struct TargetComponent
+    {
+        float2 target;
+    };
+
 
     struct VisualComponent
     {

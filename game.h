@@ -64,7 +64,8 @@ namespace Tmpl8
             
             entity e = Templ8::NewEntity();
             visuals[e] = {SpriteInstance(s)};
-            physicals[e] = {make_float2(p), make_float2(t), directions[f]};
+            spatials[e] = {make_float2(p), directions[f]};
+            targets[e] = {make_float2(t)};
             attacks[e] = { a, 0};
             collisions[e] = {false};
 
@@ -82,7 +83,7 @@ namespace Tmpl8
 
             entity e = Templ8::NewEntity();
 	        visuals[e] = {SpriteInstance(bullet), f};
-	        physicals[e] = {make_float2(p), 0, directions[f]};
+	        spatials[e] = {make_float2(p), directions[f]};
             lifetimes[e] = { 0 };
             attacks[e].army = a;
             // TODO: How do we want to deal with a bullet having an "on collision draw a different sprite" behaviour? 
@@ -96,16 +97,19 @@ namespace Tmpl8
         entity NewParticle(Sprite* s, int2 p, uint d)
         {
             entity e = Templ8::NewEntity();
-            physicals[e].pos =  make_float2(p);
-            physicals[e].dir =  make_float2(p);
+            spatials[e].pos =  make_float2(p);
+            spatials[e].dir =  make_float2(p);
             visuals[e].sprite = SpriteInstance(s);
             animations[e] = { d };
 
             return e;
         }
-        
-        // Components
-        static inline vector<PhysicalComponent> physicals;
+       
+      // Components
+        static inline vector<SpatialComponent> spatials;
+        static inline vector<MovementComponent> movements;
+        static inline vector<SteerComponent> steers;
+        static inline vector<TargetComponent> targets;
         static inline vector<VisualComponent> visuals;
         static inline vector<AnimateComponent> animations;
         static inline vector<AttackComponent> attacks;

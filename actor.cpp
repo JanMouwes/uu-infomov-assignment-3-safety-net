@@ -18,10 +18,11 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 	}
 
 	// physical.pos = make_float(p);
-	// target = make_float2(t);
 	// set direction based on specified orientation
 	// dir = directions[frame];
-	physical = {make_float2(p), make_float2(t), directions[visual.frame],};
+	spatial = {make_float2(p), directions[visual.frame]};
+	// target = make_float2(t);
+	target =  {make_float2(t)};
 	// assign tank to the specified army
 	// army = a;
 	attack = AttackComponent { a, 0 };
@@ -59,14 +60,14 @@ void Tank::TickAttack()
 	if (attack.cool_down > 200 && Game::coolDown > 4)
 	{
 		// query a grid to rapidly obtain a list of nearby tanks
-		ActorList& nearby = Game::grid.FindNearbyTanks( physical.pos + physical.dir * 200 );
+		ActorList& nearby = Game::grid.FindNearbyTanks( spatial.pos + spatial.dir * 200 );
 		for (int i = 0; i < nearby.count; i++) if (nearby.tank[i]->attack.army != this->attack.army)
 		{
-			float2 toActor = normalize( nearby.tank[i]->physical.pos - this->physical.pos );
-			if (dot( toActor, physical.dir ) > 0.8f /* within view cone*/)
+			float2 toActor = normalize( nearby.tank[i]->spatial.pos - this->spatial.pos );
+			if (dot( toActor, spatial.dir ) > 0.8f /* within view cone*/)
 			{
 				// create a bullet and add it to the actor list
-				Bullet* newBullet = new Bullet( make_int2( physical.pos + 20 * physical.dir ), visual.frame, attack.army );
+				Bullet* newBullet = new Bullet( make_int2( spatial.pos + 20 * spatial.dir ), visual.frame, attack.army );
 				Game::actorPool.push_back( newBullet );
 				// reset cooldown timer so we don't do rapid fire
 				attack.cool_down = 0;
@@ -82,11 +83,11 @@ void Tank::TickPhysics()
 {
 	// accumulate forces for steering left or right
 	// 1. target attracts
-	float2 toTarget = normalize( physical.target - physical.pos );
-	float2 toRight = make_float2( -physical.dir.y, physical.dir.x );
-	float steer = 2 * dot( toRight, toTarget );
+	float2 toTarget = normalize( target.target - spatial.pos );
+	float2 toRight = make_float2( -spatial.dir.y, spatial.dir.x );
+	steer.steer = 2 * dot( toRight, toTarget );
 	// 2. mountains repel
-	float2 probePos = physical.pos + 8 * physical.dir;
+	float2 probePos = spatial.pos + 8 * spatial.dir;
 	for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
 	{
 		float peakMag = Game::peaks[i].z / 2;
@@ -94,34 +95,34 @@ void Tank::TickPhysics()
 		float sqrDist = dot( toPeak, toPeak );
 		if (sqrDist < sqrf( peakMag ))
 			toPeak = normalize( toPeak ),
-			steer -= dot( toRight, toPeak ) * peakMag / sqrtf( sqrDist );
+			steer.steer -= dot( toRight, toPeak ) * peakMag / sqrtf( sqrDist );
 	}
 	// 3. evade other tanks
 	ActorList& nearby = Game::grid.FindNearbyTanks( this );
 	for (int i = 0; i < nearby.count; i++)
 	{
 		Tank* tank = nearby.tank[i];
-		float2 toActor = tank->physical.pos - this->physical.pos;
+		float2 toActor = tank->spatial.pos - this->spatial.pos;
 		float sqrDist = dot( toActor, toActor );
-		if (sqrDist < 400 && dot( toActor, physical.dir ) > 0.35f)
+		if (sqrDist < 400 && dot( toActor, spatial.dir ) > 0.35f)
 		{
-			steer -= (400 - sqrDist) * 0.02f * dot( toActor, toRight ) > 0 ? 1 : -1;
+			steer.steer -= (400 - sqrDist) * 0.02f * dot( toActor, toRight ) > 0 ? 1 : -1;
 			break;
 		}
 	}
 	// adjust heading and move
-	float speed = 1.0f;
-	if (steer < -0.2f) visual.frame = (visual.frame + 255 /* i.e. -1 */) & 255, physical.dir = directions[visual.frame], speed = 0.35f;
-	else if (steer > 0.2f) visual.frame = (visual.frame + 1) & 255, physical.dir = directions[visual.frame], speed = 0.35f;
+	movement.velocity = make_float2(1.0f);
+	if (steer.steer < -0.2f) visual.frame = (visual.frame + 255 /* i.e. -1 */) & 255, spatial.dir = directions[visual.frame], movement.velocity = make_float2(0.35f);
+	else if (steer.steer > 0.2f) visual.frame = (visual.frame + 1) & 255, spatial.dir = directions[visual.frame], make_float2(0.35f);
 	else {
 		// draw tank tracks, only when not turning
-		float2 perp( -physical.dir.y, physical.dir.x );
-		float2 trackPos1 = physical.pos - 9 * physical.dir + 4.5f * perp;
-		float2 trackPos2 = physical.pos - 9 * physical.dir - 5.5f * perp;
+		float2 perp( -spatial.dir.y, spatial.dir.x );
+		float2 trackPos1 = spatial.pos - 9 * spatial.dir + 4.5f * perp;
+		float2 trackPos2 = spatial.pos - 9 * spatial.dir - 5.5f * perp;
 		Game::map.bitmap->BlendBilerp( trackPos1.x, trackPos1.y, 0, 12 );
 		Game::map.bitmap->BlendBilerp( trackPos2.x, trackPos2.y, 0, 12 );
 	}
-	physical.pos += physical.dir * speed * 0.5f;
+	spatial.pos += spatial.dir * movement.velocity * 0.5f;
 }
 
 // Bullet constructor
@@ -143,7 +144,7 @@ Bullet::Bullet(int2 p, int f, int a)
 	// pos = make_float2(p);
 	// This assumes that a tank is constructed before any bullet is constructed.
 	// dir = directions[f];
-	physical = {make_float2(p), 0, directions[f]};
+	spatial = {make_float2(p), directions[f]};
 	// frameCounter = 0; // for keeping track of bullet lifetime
 	lifetime = { 0 };
 	// army = a;
@@ -160,6 +161,8 @@ void Bullet::Remove()
 	else
 		visual.sprite.Remove();
 }
+	// TODO: Velocity != acceleration. I am not a physicist but I would encode this using an AccelerationComponent and an
+	// AccelerationSystem. Basicaly it boils down needing to update
 
 // Bullet behaviour
 bool Bullet::Tick()
@@ -183,7 +186,7 @@ bool Bullet::Tick()
 void Bullet::TickPhysics()
 {
 	// update bullet position
-	physical.pos += physical.dir * 8;
+	spatial.pos += spatial.dir * 8;
 }
 
 bool Bullet::TickLifetime()
@@ -201,18 +204,18 @@ bool Bullet::TickLifetime()
 bool Bullet::TickBounds()
 {
 	// destroy bullet if it leaves the map
-	return physical.pos.x < 0 || physical.pos.y < 0 || physical.pos.x > Game::map.width || physical.pos.y > Game::map.height;
+	return spatial.pos.x < 0 || spatial.pos.y < 0 || spatial.pos.x > Game::map.width || spatial.pos.y > Game::map.height;
 }
 
 bool Bullet::TickCollision()
 {
 	// check if the bullet hit a tank
-	ActorList& tanks = Game::grid.FindNearbyTanks( physical.pos, 0 );
+	ActorList& tanks = Game::grid.FindNearbyTanks( spatial.pos, 0 );
 	for (int s = (int)tanks.count, i = 0; i < s; i++)
 	{
 		Tank* tank = tanks.tank[i]; // a tank, thankfully
 		if (tank->attack.army == this->attack.army) continue; // no friendly fire. Disable for madness.
-		float dist = length( this->physical.pos - tank->physical.pos );
+		float dist = length( this->spatial.pos - tank->spatial.pos );
 		if (dist < 10)
 		{
 			tank->collision.hit_by_bullet = true; // tank will need to draw it's own conclusion
@@ -227,9 +230,9 @@ void Bullet::Draw()
 {
 	// first visual.frame uses the 'flash' sprite; subsequent visual.frames the bullet sprite
 	if (lifetime.age == 1 || lifetime.age == 159)
-		flashSprite.Draw( Map::bitmap, physical.pos, 0 );
+		flashSprite.Draw( Map::bitmap, spatial.pos, 0 );
 	else
-		visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame );
+		visual.sprite.Draw( Map::bitmap, spatial.pos, visual.frame );
 }
 
 // ParticleExplosion constructor
@@ -247,8 +250,8 @@ ParticleExplosion::ParticleExplosion(Tank* tank)
 		if (alpha > 64) for (int i = 0; i < 2; i++) // twice for a denser cloud
 		{
 			color.push_back( pixel & 0xffffff );
-			const float fx = tank->physical.pos.x - size * 0.5f + x;
-			const float fy = tank->physical.pos.y - size * 0.5f + y;
+			const float fx = tank->spatial.pos.x - size * 0.5f + x;
+			const float fy = tank->spatial.pos.y - size * 0.5f + y;
 			pos.push_back( make_float2( fx, fy ) );
 			dir.push_back( make_float2( 0, 0 ) );
 		}
@@ -315,15 +318,15 @@ SpriteExplosion::SpriteExplosion(Bullet* bullet)
 		// frame = 0
 		0
 	};
-	physical =
+	spatial =
 	{
 		// pos = bullet->physical.pos;
-		bullet->physical.pos
+		bullet->spatial.pos
 	};
 }
 
 // Particle constructor
-Particle::Particle(Sprite* s, int2 p, uint c, uint d)
+Particle::Particle( Sprite* s, int2 p, uint c, uint d )
 {
 	physical.pos = make_float2( p );
 	physical.dir = make_float2( -1 - RandomFloat() * 4, 0 );

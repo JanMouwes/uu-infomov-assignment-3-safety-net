@@ -15,14 +15,14 @@ public:
 	virtual uint GetType() = 0;
 	virtual void Draw()
 	{
-		visual.sprite.Draw(Map::bitmap, physical.pos, visual.frame);
+		visual.sprite.Draw(Map::bitmap, spatial.pos, visual.frame);
 
 	}
 	static inline float2* directions;
 
 
 	VisualComponent visual;
-	PhysicalComponent physical;
+	SpatialComponent spatial;
 };
 
 class Tank : public Actor
@@ -32,6 +32,9 @@ public:
 	bool Tick();
 	uint GetType() { return Actor::TANK; }
 
+	TargetComponent target;
+	MovementComponent movement;
+	SteerComponent steer;
 	AttackComponent attack;
 	CollisionComponent collision;
 private:
@@ -84,7 +87,7 @@ public:
 	SpriteExplosion() = default;
 	SpriteExplosion( Bullet* bullet );
 	bool Tick() { if (++visual.frame == 16) return false; return true; }
-	void Draw() { visual.sprite.DrawAdditive( Map::bitmap, physical.pos, visual.frame - 1 ); }
+	void Draw() { visual.sprite.DrawAdditive( Map::bitmap, spatial.pos, visual.frame - 1 ); }
 	uint GetType() { return Actor::SPRITE_EXPLOSION; }
 	static inline Sprite* anim = 0;
 };
@@ -99,7 +102,7 @@ public:
 	void Draw() { visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame ); }
 
 	VisualComponent visual;
-	PhysicalComponent physical;
+	SpatialComponent physical;
 	AnimateComponent animate;
 private:
 	void TickPhysical();

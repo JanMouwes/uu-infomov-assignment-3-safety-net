@@ -7,13 +7,16 @@
 // -----------------------------------------------------------
 void Game::Init()
 {
-    physicals.resize(MAX_ENTITIES);
+    spatials.resize(MAX_ENTITIES);
+    movements.resize(MAX_ENTITIES);
+    steers.resize(MAX_ENTITIES);
+    targets.resize(MAX_ENTITIES);
     visuals.resize(MAX_ENTITIES);
     animations.resize(MAX_ENTITIES);
     attacks.resize(MAX_ENTITIES);
     collisions.resize(MAX_ENTITIES);
     lifetimes.resize(MAX_ENTITIES);
-    
+
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), 36, 256);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), 36, 256);
@@ -48,7 +51,7 @@ void Game::Init()
 
             NewTank(tank1, make_int2(40 + x * 32, 2620 - y * 32), make_int2(5000, -500), 0, 0);
             NewTank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
-        }   
+        }
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++) // small forward groups
         {
@@ -59,7 +62,7 @@ void Game::Init()
 
             NewTank(tank1, make_int2(1440 + x * 32, 2220 - y * 32), make_int2(3500, -500), 0, 0);
             NewTank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
-        }   
+        }
     // load mountain peaks
     Surface mountains("assets/peaks.png");
     for (int y = 0; y < mountains.height; y++)
