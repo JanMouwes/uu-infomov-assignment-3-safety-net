@@ -13,7 +13,7 @@ void Grid::Populate( const vector<Actor*>& actors )
 	for( int s = (int)actors.size(), i = 0; i < s; i++ ) if (actors[i]->GetType() == Actor::TANK)
 	{
 		// calculate actor position in grid space
-		int2 gridPos = make_int2( posScale * actors[i]->pos );
+		int2 gridPos = make_int2( posScale * actors[i]->physical.pos );
 		// add actor to cell
 		if (gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= GRIDSIZE || gridPos.y >= GRIDSIZE) continue;
 		ActorList& c = cell[gridPos.x + gridPos.y * GRIDSIZE];
@@ -23,7 +23,7 @@ void Grid::Populate( const vector<Actor*>& actors )
 
 ActorList& Grid::FindNearbyTanks( Tank* tank )
 {
-	return FindNearbyTanks( tank->pos, tank );
+	return FindNearbyTanks( tank->physical.pos, tank );
 }
 
 ActorList& Grid::FindNearbyTanks( float2 position, Tank* tank )

@@ -15,15 +15,11 @@ public:
 	virtual uint GetType() = 0;
 	virtual void Draw()
 	{
-		// sprite.Draw(Map::bitmap, pos, frame);
-		// GOAL: visual.sprite.Draw(Map::bitmap, physical.pos, visual.frame)
-		visual.sprite.Draw(Map::bitmap, pos, frame);
+		visual.sprite.Draw(Map::bitmap, physical.pos, visual.frame);
 
 	}
-	SpriteInstance sprite;
-	float2 pos, dir;
-	int frame;
-	static inline float2* directions = 0;
+	static inline float2* directions;
+
 
 	VisualComponent visual;
 	PhysicalComponent physical;
@@ -75,8 +71,8 @@ class SpriteExplosion : public Actor
 public:
 	SpriteExplosion() = default;
 	SpriteExplosion( Bullet* bullet );
-	bool Tick() { if (++frame == 16) return false; return true; }
-	void Draw() { sprite.DrawAdditive( Map::bitmap, pos, frame - 1 ); }
+	bool Tick() { if (++visual.frame == 16) return false; return true; }
+	void Draw() { visual.sprite.DrawAdditive( Map::bitmap, physical.pos, visual.frame - 1 ); }
 	uint GetType() { return Actor::SPRITE_EXPLOSION; }
 	static inline Sprite* anim = 0;
 };
