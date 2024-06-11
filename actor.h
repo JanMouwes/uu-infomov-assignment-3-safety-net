@@ -10,7 +10,7 @@ class Actor
 {
 public:
 	enum { TANK = 0, BULLET, FLAG, PARTICLE_EXPLOSION, SPRITE_EXPLOSION  };
-	virtual void Remove() { sprite.Remove(); }
+	virtual void Remove() { visual.sprite.Remove(); }
 	virtual bool Tick() = 0;
 	virtual uint GetType() = 0;
 	virtual void Draw()
