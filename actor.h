@@ -81,13 +81,13 @@ class Particle
 public:
 	Particle() = default;
 	Particle( Sprite* s, int2 p, uint c, uint d );
-	void Remove() { sprite.Remove(); }
+	void Remove() { visual.sprite.Remove(); }
 	void Tick();
-	void Draw() { sprite.Draw( Map::bitmap, pos, frame ); }
-	uint backup[4], color = 0, frame, frameChange;
-	bool hasBackup = false;
-	SpriteInstance sprite;
-	float2 pos, dir;
+	void Draw() { visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame ); }
+
+	VisualComponent visual;
+	PhysicalComponent physical;
+	AnimateComponent animate;
 };
 
 } // namespace Tmpl8

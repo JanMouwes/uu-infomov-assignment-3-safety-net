@@ -271,31 +271,32 @@ SpriteExplosion::SpriteExplosion(Bullet* bullet)
 // Particle constructor
 Particle::Particle( Sprite* s, int2 p, uint c, uint d )
 {
-	pos = make_float2( p );
-	dir = make_float2( -1 - RandomFloat() * 4, 0 );
-	color = c;
-	frameChange = d;
-	sprite = SpriteInstance( s );
+	physical.pos = make_float2( p );
+	physical.dir = make_float2( -1 - RandomFloat() * 4, 0 );
+	// frameChange = d;
+	animate.frame_change = d;
+	// sprite = SpriteInstance( s );
+	visual.sprite = SpriteInstance(s);
 }
 
 // Particle behaviour
 void Particle::Tick()
 {
-	pos += dir;
-	dir.y *= 0.95f;
-	if (pos.x < 0)
+	physical.pos += physical.dir;
+	physical.dir.y *= 0.95f;
+	if (physical.pos.x < 0)
 	{
-		pos.x = (float)(Game::map.bitmap->width - 1);
-		pos.y = (float)(RandomUInt() % Game::map.bitmap->height);
-		dir = make_float2( -1 - RandomFloat() * 2, 0 );
+		physical.pos.x = (float)(Game::map.bitmap->width - 1);
+		physical.pos.y = (float)(RandomUInt() % Game::map.bitmap->height);
+		physical.dir = make_float2( -1 - RandomFloat() * 2, 0 );
 	}
 	for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
 	{
-		float2 toPeak = make_float2( Game::peaks[i].x, Game::peaks[i].y ) - pos;
+		float2 toPeak = make_float2( Game::peaks[i].x, Game::peaks[i].y ) - physical.pos;
 		float g = Game::peaks[i].z * 0.02f / sqrtf( dot( toPeak, toPeak ) );
 		toPeak = normalize( toPeak );
-		dir.y -= toPeak.y * g;
+		physical.dir.y -= toPeak.y * g;
 	}
-	dir.y += RandomFloat() * 0.05f - 0.025f;
-	frame = (frame + frameChange + 256) & 255;
+	physical.dir.y += RandomFloat() * 0.05f - 0.025f;
+	visual.frame = (visual.frame + animate.frame_change + 256) & 255;
 }
