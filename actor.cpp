@@ -10,7 +10,6 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 	// visual.frame = f;
 	visual = {SpriteInstance(s), f};
 
-	// TODO investigate making this a singleton (for caching)
 	// create the static array of directions if it doesn't exist yet
 	if (directions == nullptr)
 	{
@@ -106,32 +105,26 @@ bool Tank::Tick()
 // Bullet constructor
 Bullet::Bullet(int2 p, int f, int a)
 {
-	if (flash == 0)
+	if (flash == nullptr)
 	{
 		// load static sprite data if not done yet
 		flash = new Sprite("assets/flash.png");
 		bullet = new Sprite("assets/bullet.png", make_int2(2, 2), make_int2(31, 31), 32, 256);
 	}
-	visual =
-	{
-		// create sprite instances based on the static sprite data
-		// sprite = SpriteInstance(bullet);
-		SpriteInstance(bullet),
-		// frame = f;
-		f
-	};
-	physical =
-	{
-		// set position and direction
-		// pos = make_float2(p);
-		make_float2(p),
 
-		// dir = directions[f];
-		directions[f] // This assumes that a tank is constructed before any bullet is constructed.
-	};
+	// create sprite instances based on the static sprite data
+	// sprite = SpriteInstance(bullet);
+	// frame = f;
+	visual = {SpriteInstance(bullet), f};
+
+	// set position and direction
+	// pos = make_float2(p);
+	// This assumes that a tank is constructed before any bullet is constructed.
+	// dir = directions[f];
+	physical = {make_float2(p), 0, directions[f]};
 	frameCounter = 0; // for keeping track of bullet lifetime
 	army = a;
-	flashSprite = SpriteInstance( flash );
+	flashSprite = SpriteInstance(flash);
 }
 
 // Bullet 'undraw': erase previously rendered pixels
