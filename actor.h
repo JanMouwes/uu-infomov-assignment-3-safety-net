@@ -31,7 +31,6 @@ public:
 	Tank( Sprite* s, int2 p, int2 t, int f, int a );
 	bool Tick();
 	uint GetType() { return Actor::TANK; }
-	float2 target;
 	int army, coolDown = 0;
 	bool hitByBullet = false;
 };

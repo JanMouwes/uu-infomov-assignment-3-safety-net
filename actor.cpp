@@ -26,7 +26,7 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 		// target = make_float2(t);
 		make_float2(t),
 		// set direction based on specified orientation
-		// physical.dir = directions[visual.frame];
+		// dir = directions[frame];
 		directions[visual.frame],
 
 	};
@@ -66,7 +66,7 @@ bool Tank::Tick()
 	coolDown++;
 	// accumulate forces for steering left or right
 	// 1. target attracts
-	float2 toTarget = normalize( target - physical.pos );
+	float2 toTarget = normalize( physical.target - physical.pos );
 	float2 toRight = make_float2( -physical.dir.y, physical.dir.x );
 	float steer = 2 * dot( toRight, toTarget );
 	// 2. mountains repel
