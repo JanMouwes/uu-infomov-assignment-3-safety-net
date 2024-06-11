@@ -169,8 +169,8 @@ bool Bullet::Tick()
 	bool isAlive = TickLifetime();
 	if (!isAlive) return isAlive;
 	
-	bool isInBounds = TickBounds();
-	if (!isInBounds) return isInBounds;
+	bool isOutOfBounds = TickBounds();
+	if (isOutOfBounds) return isOutOfBounds;
 
 	bool notHitAtTank = TickCollision();
 	// When the bullet hits a tank, it dies.
