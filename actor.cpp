@@ -31,12 +31,30 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 // Tank::Tick : tank behaviour
 bool Tank::Tick()
 {
+	bool isAlive = TickCollision();
+	if (!isAlive) return isAlive;
+
+	TickAttack();
+
+	TickPhysics();
+	
+	// tanks never die
+	return true;
+}
+
+bool Tank::TickCollision()
+{
 	// handle incoming bullets
 	if (collision.hit_by_bullet)
 	{
 		Game::actorPool.push_back( new ParticleExplosion( this ) );
 		return false;
 	}
+	return true;
+}
+
+void Tank::TickAttack()
+{
 	// fire bullet if cooled down and enemy is in range
 	if (attack.cool_down > 200 && Game::coolDown > 4)
 	{
@@ -58,6 +76,11 @@ bool Tank::Tick()
 		}
 	}
 	attack.cool_down++;
+}
+
+void Tank::TickPhysics()
+{
+	
 	// accumulate forces for steering left or right
 	// 1. target attracts
 	float2 toTarget = normalize( physical.target - physical.pos );
@@ -100,15 +123,7 @@ bool Tank::Tick()
 		Game::map.bitmap->BlendBilerp( trackPos2.x, trackPos2.y, 0, 12 );
 	}
 	physical.pos += physical.dir * speed * 0.5f;
-	// tanks never die
-	return true;
 }
-
-bool Tank::TickPhysics()
-{
-	
-}
-
 
 // Bullet constructor
 Bullet::Bullet(int2 p, int f, int a)
