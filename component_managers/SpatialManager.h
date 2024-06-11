@@ -1,53 +1,70 @@
 #pragma once
-#include <unordered_map>
-#include <array>
 
 #include "entity.h"
 #include "EntityManager.h"
 #include "containers/DynamicArray.h"
 
+// Handle to a component instance.
+struct SpatialInstance
+{
+    unsigned int index;
+};
+
+struct SpatialInstanceData
+{
+    float2 pos;
+    float2 dir;
+    float2 velocity;
+};
+
 class SpatialManager
 {
-    // Handle to a component instance.
-    struct Instance
+public:
+    void Init()
     {
-        entity_id index;
-    };
-    
+        data_.Reserve(MAX_ENTITIES);
+    }
+
     // Create an instance from an index to the data arrays.
-    static Instance make_instance(entity_id i)
+    SpatialInstance MakeInstance(unsigned int index)
     {
-        Instance inst = {i};
+        SpatialInstance inst = {index};
         return inst;
     }
 
-    struct InstanceData
+    SpatialInstance Register(entity_id e, SpatialInstanceData d)
     {
-        float2 pos;
-        float2 dir;
-        float2 velocity;
-    };
-    
-    // map_ adds a level of indirection that allows SpatialManager to store entities sparsely. Indexing map_[entity_id]
-    // yields the index of the component, or -1 if the component doesn't exist
-    Templ8::DynamicArray<entity_id> map_;
-    vector<InstanceData> data_;
+        map_.PutUnique(e);
+        data_.Push(d);
+        SpatialInstance instance = Lookup(e);
+        return instance;
+    }
+
 
     // Returns the component instance for the specified entity or a nil instance
     // if the entity doesn't have the component.
-    Instance Lookup(entity_id e)
+    SpatialInstance Lookup(entity_id e)
     {
-        return make_instance(map_[e]);
+        unsigned int index;
+        if (!map_.Exists(e, index))
+            return MakeInstance(-1);
+        return MakeInstance(index);
     }
 
-    float2 Pos(Instance instance) const { return data_[instance.index].pos; }
-    float2 Dir(Instance instance) const { return data_[instance.index].dir; }
+    float2 Pos(SpatialInstance instance) { return data_[instance.index].pos; }
+    float2 Dir(SpatialInstance instance) { return data_[instance.index].dir; }
 
     void Simulate()
     {
-        for (entity_id i = 0; i < data_.size(); ++i)
+        for (entity_id i = 0; i < data_.GetNum(); ++i)
         {
             data_[i].pos += data_[i].velocity;
         }
     }
+
+private:
+    // map_ adds a level of indirection that allows SpatialManager to store entities sparsely. Indexing map_[entity_id]
+    // yields the index of the component, or -1 if the component doesn't exist
+    Templ8::SortedList<entity_id, MAX_ENTITIES> map_;
+    Templ8::DynamicArray<SpatialInstanceData> data_;
 };

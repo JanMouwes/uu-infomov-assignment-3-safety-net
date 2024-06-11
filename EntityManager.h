@@ -2,7 +2,7 @@
 #include "entity.h"
 #include "containers/SortedList.h"
 
-using entity_id = uint32_t;
+using entity_id = int;
 
 class EntityManager
 {

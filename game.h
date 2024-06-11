@@ -1,5 +1,6 @@
 #pragma once
 #include "entity.h"
+#include "component_managers/SpatialManager.h"
 
 namespace Tmpl8
 {
@@ -39,6 +40,9 @@ namespace Tmpl8
         Sprite *tank1, *tank2; // tank sprites
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
+
+        EntityManager entity_manager;
+        SpatialManager spatial_manager;
         
         // static data, for global access
         static inline Map map; // the map
@@ -61,10 +65,12 @@ namespace Tmpl8
                 directions = new float2[256];
                 for (int i = 0; i < 256; i++) directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
             }
+
+            entity_id e2 = entity_manager.Create();
+            spatial_manager.Register(e2, { make_float2(p), directions[f] });
             
             entity e = Templ8::NewEntity();
             visuals[e] = {SpriteInstance(s)};
-            spatials[e] = {make_float2(p), directions[f]};
             targets[e] = {make_float2(t)};
             attacks[e] = { a, 0};
             collisions[e] = {false};
@@ -81,9 +87,11 @@ namespace Tmpl8
                 bullet = new Sprite("assets/bullet.png", make_int2(2, 2), make_int2(31, 31), 32, 256);
             }
 
+            entity_id e2 = entity_manager.Create();
+            spatial_manager.Register(e2, { make_float2(p), directions[f] });
+
             entity e = Templ8::NewEntity();
 	        visuals[e] = {SpriteInstance(bullet), f};
-	        spatials[e] = {make_float2(p), directions[f]};
             lifetimes[e] = { 0 };
             attacks[e].army = a;
             // TODO: How do we want to deal with a bullet having an "on collision draw a different sprite" behaviour? 
@@ -96,9 +104,12 @@ namespace Tmpl8
 
         entity NewParticle(Sprite* s, int2 p, uint d)
         {
+            
+            entity_id e2 = entity_manager.Create();
+            // TODO: What initial direction do we give a particle?
+            spatial_manager.Register(e2, { make_float2(p), make_float2(p) });
+            
             entity e = Templ8::NewEntity();
-            spatials[e].pos =  make_float2(p);
-            spatials[e].dir =  make_float2(p);
             visuals[e].sprite = SpriteInstance(s);
             animations[e] = { d };
 
@@ -106,7 +117,6 @@ namespace Tmpl8
         }
        
       // Components
-        static inline vector<SpatialComponent> spatials;
         static inline vector<MovementComponent> movements;
         static inline vector<SteerComponent> steers;
         static inline vector<TargetComponent> targets;

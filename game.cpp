@@ -7,7 +7,8 @@
 // -----------------------------------------------------------
 void Game::Init()
 {
-    spatials.resize(MAX_ENTITIES);
+    spatial_manager.Init();
+    
     movements.resize(MAX_ENTITIES);
     steers.resize(MAX_ENTITIES);
     targets.resize(MAX_ENTITIES);
