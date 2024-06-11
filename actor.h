@@ -83,11 +83,13 @@ public:
 	Particle( Sprite* s, int2 p, uint c, uint d );
 	void Remove() { sprite.Remove(); }
 	void Tick();
-	void Draw() { sprite.Draw( Map::bitmap, pos, frame ); }
+	void Draw() { sprite.Draw( Map::bitmap, physical.pos, frame ); }
 	uint backup[4], color = 0, frame, frameChange;
 	bool hasBackup = false;
 	SpriteInstance sprite;
-	float2 pos, dir;
+
+	// float2 pos, dir;
+	PhysicalComponent physical;
 };
 
 } // namespace Tmpl8
