@@ -17,4 +17,9 @@ namespace Tmpl8
         SpriteInstance sprite;
         int frame;
     };
+
+    struct AnimateComponent
+    {
+        uint frame_change;
+    };
 }

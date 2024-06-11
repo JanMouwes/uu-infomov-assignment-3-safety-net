@@ -84,10 +84,10 @@ public:
 	void Remove() { visual.sprite.Remove(); }
 	void Tick();
 	void Draw() { visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame ); }
-	uint frameChange;
 
 	VisualComponent visual;
 	PhysicalComponent physical;
+	AnimateComponent animate;
 };
 
 } // namespace Tmpl8

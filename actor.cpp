@@ -273,8 +273,8 @@ Particle::Particle( Sprite* s, int2 p, uint c, uint d )
 {
 	physical.pos = make_float2( p );
 	physical.dir = make_float2( -1 - RandomFloat() * 4, 0 );
-	color = c;
-	frameChange = d;
+	// frameChange = d;
+	animate.frame_change = d;
 	// sprite = SpriteInstance( s );
 	visual.sprite = SpriteInstance(s);
 }
@@ -298,5 +298,5 @@ void Particle::Tick()
 		physical.dir.y -= toPeak.y * g;
 	}
 	physical.dir.y += RandomFloat() * 0.05f - 0.025f;
-	visual.frame = (visual.frame + frameChange + 256) & 255;
+	visual.frame = (visual.frame + animate.frame_change + 256) & 255;
 }
