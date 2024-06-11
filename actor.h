@@ -84,9 +84,7 @@ public:
 	void Remove() { visual.sprite.Remove(); }
 	void Tick();
 	void Draw() { visual.sprite.Draw( Map::bitmap, physical.pos, visual.frame ); }
-	uint backup[4], color = 0, frameChange;
-	
-	bool hasBackup = false;
+	uint frameChange;
 
 	VisualComponent visual;
 	PhysicalComponent physical;
