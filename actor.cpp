@@ -4,32 +4,25 @@
 // Tank constructor
 Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 {
-	visual =
-	{
-		// create sprite instance based on existing sprite
-		// sprite = SpriteInstance(s);
-		SpriteInstance(s),
-		// set intial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: east
-		// visual.frame = f;
-		f
-	};
+	// create sprite instance based on existing sprite
+	// sprite = SpriteInstance(s);
+	// set intial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: east
+	// visual.frame = f;
+	visual = {SpriteInstance(s), f};
+
+	// TODO investigate making this a singleton (for caching)
 	// create the static array of directions if it doesn't exist yet
-	if (directions == 0)
+	if (directions == nullptr)
 	{
 		directions = new float2[256];
 		for (int i = 0; i < 256; i++) directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
 	}
-	physical =
-	{
-		// physical.pos = make_float(p);
-		make_float2(p),
-		// target = make_float2(t);
-		make_float2(t),
-		// set direction based on specified orientation
-		// dir = directions[frame];
-		directions[visual.frame],
 
-	};
+	// physical.pos = make_float(p);
+	// target = make_float2(t);
+	// set direction based on specified orientation
+	// dir = directions[frame];
+	physical = {make_float2(p), make_float2(t), directions[visual.frame],};
 	// assign tank to the specified army
 	army = a;
 }
