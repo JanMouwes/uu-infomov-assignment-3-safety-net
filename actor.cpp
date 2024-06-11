@@ -240,7 +240,7 @@ void ParticleExplosion::Remove()
 	// restore map pixels that we changed, in reverse order (this is important)
 	for (int s = (int)pos.size(), i = s - 1; i >= 0; i--)
 	{
-		int2 intPos = make_int2( physical.pos[i] );
+		int2 intPos = make_int2( pos[i] );
 		Game::map.bitmap->Plot( intPos.x, intPos.y, backup[i * 4 + 0] );
 		Game::map.bitmap->Plot( intPos.x + 1, intPos.y, backup[i * 4 + 1] );
 		Game::map.bitmap->Plot( intPos.x, intPos.y + 1, backup[i * 4 + 2] );
