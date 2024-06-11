@@ -1,35 +1,34 @@
 
-#include <unordered_set>
+#include "entity.h"
+#include "containers/SortedList.h"
 
 using entity_id = uint32_t;
 
-struct Entity
-{
-    entity_id id;
-};
-
 class EntityManager
 {
-    unordered_set<Entity> _entities;
-    Entity _next;
+    Templ8::SortedList<entity_id, MAX_ENTITIES> _entities;
+    entity_id _next;
 
 public:
-    Entity Create()
+    entity_id Create()
     {
-        ++_next.id;
+        ++_next;
         while (Alive(_next))
-            ++_next.id;
-        _entities.insert(_next);
+            ++_next;
+        _entities.Put(_next);
         return _next;
     }
 
-    bool Alive(Entity e)
+    bool Alive(entity_id e)
     {
-        return _entities.count(e) > 0;
+        unsigned int index;
+        return _entities.Exists(e, index);
     }
 
-    void Destroy(Entity e)
+    void Destroy(entity_id e)
     {
-        _entities.erase(e);
+        unsigned int index;
+        if (!_entities.Exists(e, index)) return;
+        _entities.Remove(index);
     }
 };

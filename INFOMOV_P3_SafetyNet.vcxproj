@@ -145,6 +145,7 @@
     <ClInclude Include="actor.h" />
     <ClInclude Include="cl\tools.cl" />
     <ClInclude Include="component_managers\SpatialManager.h" />
+    <ClInclude Include="containers\SortedList.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="flag.h" />
@@ -168,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include="containers\DynamicArray.h" />
     <Content Include="PROGRESS.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
