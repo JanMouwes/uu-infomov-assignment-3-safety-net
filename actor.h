@@ -30,9 +30,11 @@ class Tank : public Actor
 public:
 	Tank( Sprite* s, int2 p, int2 t, int f, int a );
 	bool Tick();
+	bool TickPhysics();
 	uint GetType() { return Actor::TANK; }
-	int army, coolDown = 0;
-	bool hitByBullet = false;
+
+	AttackComponent attack;
+	CollisionComponent collision;
 };
 
 class Bullet : public Actor

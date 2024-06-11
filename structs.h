@@ -22,4 +22,15 @@ namespace Tmpl8
     {
         uint frame_change;
     };
+
+    struct AttackComponent
+    {
+        int army;
+        int cool_down;
+    };
+
+    struct CollisionComponent
+    {
+        bool hit_by_bullet;
+    };
 }

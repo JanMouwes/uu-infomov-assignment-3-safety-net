@@ -23,39 +23,41 @@ Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
 	// dir = directions[frame];
 	physical = {make_float2(p), make_float2(t), directions[visual.frame],};
 	// assign tank to the specified army
-	army = a;
+	// army = a;
+	attack = AttackComponent { a, 0 };
+	collision = CollisionComponent { false };
 }
 
 // Tank::Tick : tank behaviour
 bool Tank::Tick()
 {
 	// handle incoming bullets
-	if (hitByBullet)
+	if (collision.hit_by_bullet)
 	{
 		Game::actorPool.push_back( new ParticleExplosion( this ) );
 		return false;
 	}
 	// fire bullet if cooled down and enemy is in range
-	if (coolDown > 200 && Game::coolDown > 4)
+	if (attack.cool_down > 200 && Game::coolDown > 4)
 	{
 		// query a grid to rapidly obtain a list of nearby tanks
 		ActorList& nearby = Game::grid.FindNearbyTanks( physical.pos + physical.dir * 200 );
-		for (int i = 0; i < nearby.count; i++) if (nearby.tank[i]->army != this->army)
+		for (int i = 0; i < nearby.count; i++) if (nearby.tank[i]->attack.army != this->attack.army)
 		{
 			float2 toActor = normalize( nearby.tank[i]->physical.pos - this->physical.pos );
 			if (dot( toActor, physical.dir ) > 0.8f /* within view cone*/)
 			{
 				// create a bullet and add it to the actor list
-				Bullet* newBullet = new Bullet( make_int2( physical.pos + 20 * physical.dir ), visual.frame, army );
+				Bullet* newBullet = new Bullet( make_int2( physical.pos + 20 * physical.dir ), visual.frame, attack.army );
 				Game::actorPool.push_back( newBullet );
 				// reset cooldown timer so we don't do rapid fire
-				coolDown = 0;
+				attack.cool_down = 0;
 				Game::coolDown = 0;
 				break;
 			}
 		}
 	}
-	coolDown++;
+	attack.cool_down++;
 	// accumulate forces for steering left or right
 	// 1. target attracts
 	float2 toTarget = normalize( physical.target - physical.pos );
@@ -101,6 +103,12 @@ bool Tank::Tick()
 	// tanks never die
 	return true;
 }
+
+bool Tank::TickPhysics()
+{
+	
+}
+
 
 // Bullet constructor
 Bullet::Bullet(int2 p, int f, int a)
@@ -156,11 +164,11 @@ bool Bullet::Tick()
 	for (int s = (int)tanks.count, i = 0; i < s; i++)
 	{
 		Tank* tank = tanks.tank[i]; // a tank, thankfully
-		if (tank->army == this->army) continue; // no friendly fire. Disable for madness.
+		if (tank->attack.army == this->army) continue; // no friendly fire. Disable for madness.
 		float dist = length( this->physical.pos - tank->physical.pos );
 		if (dist < 10)
 		{
-			tank->hitByBullet = true; // tank will need to draw it's own conclusion
+			tank->collision.hit_by_bullet = true; // tank will need to draw it's own conclusion
 			return false; // bees die from stinging. Disable for rail gun.
 		}
 	}
