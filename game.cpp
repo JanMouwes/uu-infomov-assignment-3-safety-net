@@ -34,6 +34,9 @@ void Game::Init()
             Actor* army2Tank = new Tank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
+
+            NewTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
+            NewTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
         }
     for (int y = 0; y < 12; y++)
         for (int x = 0; x < 12; x++) // backup
@@ -42,7 +45,10 @@ void Game::Init()
             Actor* army2Tank = new Tank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
-        }
+
+            NewTank(tank1, make_int2(40 + x * 32, 2620 - y * 32), make_int2(5000, -500), 0, 0);
+            NewTank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
+        }   
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++) // small forward groups
         {
@@ -50,12 +56,16 @@ void Game::Init()
             Actor* army2Tank = new Tank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
-        }
+
+            NewTank(tank1, make_int2(1440 + x * 32, 2220 - y * 32), make_int2(3500, -500), 0, 0);
+            NewTank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
+        }   
     // load mountain peaks
     Surface mountains("assets/peaks.png");
     for (int y = 0; y < mountains.height; y++)
         for (int x = 0; x < mountains.width; x++)
         {
+            // TODO: Make peaks entities with the physical component
             uint p = mountains.pixels[x + y * mountains.width];
             if ((p & 0xffff) == 0) peaks.push_back(make_float3(make_int3(x * 8, y * 8, (p >> 16) & 255)));
         }
@@ -65,7 +75,9 @@ void Game::Init()
         int x = RandomUInt() % map.bitmap->width;
         int y = RandomUInt() % map.bitmap->height;
         int d = (RandomUInt() & 15) - 8;
+
         sand.push_back(new Particle(bush[i % 3], make_int2(x, y), map.bitmap->pixels[x + y * map.bitmap->width], d));
+        NewParticle(bush[i % 3], make_int2(x, y), d);
     }
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");

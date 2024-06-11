@@ -148,6 +148,7 @@
     <ClInclude Include="grid.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="structs.h" />
+    <ClInclude Include="system.h" />
     <ClInclude Include="template\common.h" />
     <ClInclude Include="template\opencl.h" />
     <ClInclude Include="template\opengl.h" />

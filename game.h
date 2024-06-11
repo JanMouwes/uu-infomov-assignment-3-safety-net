@@ -67,6 +67,8 @@ namespace Tmpl8
             physicals[e] = {make_float2(p), make_float2(t), directions[f]};
             attacks[e] = { a, 0};
             collisions[e] = {false};
+
+            return e;
         }
 
         entity NewBullet(int2 p, int f, int a)
@@ -88,6 +90,7 @@ namespace Tmpl8
             // tank particle explosion effect can can be triggered on collision. The problem can also be seen as one
             // entity having multiple sprites, which we can't include in our ECS-system as of right now.
             // flashSprite = SpriteInstance(flash);
+            return e;
         }
 
         entity NewParticle(Sprite* s, int2 p, uint d)
@@ -97,6 +100,8 @@ namespace Tmpl8
             physicals[e].dir =  make_float2(p);
             visuals[e].sprite = SpriteInstance(s);
             animations[e] = { d };
+
+            return e;
         }
         
         // Components
