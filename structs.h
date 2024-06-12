@@ -27,7 +27,7 @@ namespace Tmpl8
     struct VisualComponent
     {
         SpriteInstance sprite;
-        int frame;
+        uint frame;
     };
 
     struct AnimateComponent

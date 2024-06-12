@@ -127,6 +127,7 @@
     <ClCompile Include="grid.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="structs.cpp" />
+    <ClCompile Include="system.cpp" />
     <ClCompile Include="template\opencl.cpp" />
     <ClCompile Include="template\opengl.cpp" />
     <ClCompile Include="template\sprite.cpp" />

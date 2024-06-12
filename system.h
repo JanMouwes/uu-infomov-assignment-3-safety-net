@@ -31,4 +31,40 @@ namespace Templ8
         {
         }
     }
+
+
+    class ParticlesSystem
+    {
+    public:
+        ParticlesSystem();
+        void SpawnParticleExplosion(const VisualComponent& tank_visual, SpatialComponent tank_spatial);
+    private:
+        vector<vector<uint>> colours;
+        vector<vector<SpatialComponent>> spatials;
+    };
+
+    class TanksSystem
+    {
+    public:
+        TanksSystem(const ParticlesSystem& particle_system);
+
+        void NewTank(Sprite* s, int2 p, int2 t, uint f, int a);
+
+        void Tick();
+
+        void Draw();
+
+    private:
+        void SpawnParticle(uint i);
+        void DespawnTank(uint i);
+        static inline float2* directions;
+
+        vector<VisualComponent> visuals;
+        vector<SpatialComponent> spatials;
+        vector<TargetComponent> targets;
+        vector<AttackComponent> attacks;
+        vector<CollisionComponent> collisions;
+        ParticlesSystem particle_system;
+    };
+
 }
