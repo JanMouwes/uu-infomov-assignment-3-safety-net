@@ -10,6 +10,7 @@ struct SpatialInstance
     int index;
 };
 
+// TODO: Rename to SpatialComponent when it no longer clashes.
 struct SpatialInstanceData
 {
     float2 pos;
@@ -17,6 +18,9 @@ struct SpatialInstanceData
     float2 velocity;
 };
 
+/*
+ * A Component manager implemented based on: https://bitsquid.blogspot.com/2014/09/building-data-oriented-entity-system.html.
+ */
 class SpatialManager
 {
 public:
@@ -28,7 +32,7 @@ public:
     /*
      * MakeInstance creates a new SpatialInstance given an index into SpatialManager's data_ array.
      */
-    SpatialInstance MakeInstance(int index)
+    SpatialInstance MakeInstance(int index);
     {
         SpatialInstance inst = {index};
         return inst;

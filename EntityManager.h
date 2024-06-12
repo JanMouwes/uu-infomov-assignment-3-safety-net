@@ -5,6 +5,9 @@
 // int is used because Agner Fox's containers use int indices.
 using entity_id = int;
 
+/*
+ * An EntityManager implemented based on: https://bitsquid.blogspot.com/2014/08/building-data-oriented-entity-system.html.
+ */
 class EntityManager
 {
 public:
