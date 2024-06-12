@@ -28,15 +28,16 @@ public:
 class Tank : public Actor
 {
 public:
-	Tank( Sprite* s, int2 p, int2 t, int f, int a );
+	Tank(const SpatialComponent* spatial, const VisualComponent* visual, const TargetComponent* target, const AttackComponent* attack);
 	bool Tick();
 	uint GetType() { return Actor::TANK; }
 
-	TargetComponent target;
-	MovementComponent movement;
-	SteerComponent steer;
-	AttackComponent attack;
-	CollisionComponent collision;
+	const SpatialComponent* spatial;
+	const VisualComponent* visual;
+	const TargetComponent* target;
+	const SteerComponent* steer;
+	const AttackComponent* attack;
+	const CollisionComponent* collision;
 private:
 	bool TickCollision();
 	void TickAttack();

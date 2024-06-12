@@ -20,15 +20,8 @@ namespace Templ8
         }
     }
 
-    void MountainsRepelSystem(vector<SpatialComponent> spatials, vector<SteerComponent> steers, )
+    void MountainsRepelSystem(vector<SpatialComponent> spatials, vector<SteerComponent> steers)
     {
-    }
-
-    void MovementSystem(vector<SpatialComponent> spatials, vector<MovementComponent> movements)
-    {
-        for (auto spatial : spatials)
-        {
-        }
     }
 
 
@@ -63,12 +56,13 @@ namespace Templ8
     class TanksSystem
     {
     public:
-        TanksSystem(ParticlesSystem* particle_system, BulletsSystem* bullets_system, Grid* grid);
+        TanksSystem(ParticlesSystem* particles_system, BulletsSystem* bullets_system, vector<float3>* peaks);
         void SpawnTank(Sprite* s, int2 p, int2 t, uint f, int a);
 
         void Tick();
 
         void Draw();
+        Tank GetTank(uint i) const;
 
     private:
         static inline float2* directions;
@@ -82,10 +76,11 @@ namespace Templ8
         vector<TargetComponent> targets;
         vector<AttackComponent> attacks;
         vector<CollisionComponent> collisions;
+        vector<SteerComponent> steers;
 
         ParticlesSystem* particles_system;
         BulletsSystem* bullets_system;
-        Grid* grid;
+        vector<float3>* peaks;
 
         /**
          * Prevents simultaneous firing

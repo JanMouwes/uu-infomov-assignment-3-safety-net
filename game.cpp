@@ -9,7 +9,6 @@
 void Game::Init()
 {
     spatials.resize(MAX_ENTITIES);
-    movements.resize(MAX_ENTITIES);
     steers.resize(MAX_ENTITIES);
     targets.resize(MAX_ENTITIES);
     visuals.resize(MAX_ENTITIES);
@@ -141,7 +140,6 @@ void Game::Tick(float deltaTime)
     map.Draw(screen);
     // rebuild actor grid
     grid.Clear();
-    grid.Populate(actorPool);
     // update and render actors
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();

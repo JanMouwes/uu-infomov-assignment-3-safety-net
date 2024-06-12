@@ -6,10 +6,7 @@ namespace Tmpl8
     {
         float2 pos;
         float2 dir;
-    };
 
-    struct MovementComponent
-    {
         float2 velocity;
     };
 
