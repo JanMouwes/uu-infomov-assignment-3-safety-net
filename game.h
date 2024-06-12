@@ -105,7 +105,7 @@ namespace Tmpl8
             return e;
         }
        
-      // Components
+        // Components
         static inline vector<SpatialComponent> spatials;
         static inline vector<MovementComponent> movements;
         static inline vector<SteerComponent> steers;

@@ -1,12 +1,28 @@
 namespace Templ8
 {
+    /*
+     * TargetsAttractSystem loops over each target component updating the steer component towards the target. It assumes
+     * that each entity registered in targets is also registered in spatials and steers. It does not assume that each
+     * entity registered in spatials and steers are also registered with targets.
+     */
     void TargetsAttractSystem(vector<TargetComponent> targets, vector<SpatialComponent> spatials,
-                              vector<SteerComponent> steer)
+                              vector<SteerComponent> steers)
     {
-        // TODO: We need some way to store entities in a sparse way, and to be aware of which entity is where.
-        // Just iterating over the array wont work as some entries will be uninitialized because each NewXxx call
-        // increments the global NEXT_ENTITY count, but each NewXxx call does not add a component to each component
-        // collection.
+        for (int i = 0; i < targets.size(); i++)
+        {
+            TargetComponent t = targets.at(i);
+            SpatialComponent s = spatials.at(i);
+
+            float2 toTarget = normalize( t.target - s.pos );
+            float2 toRight = make_float2( -s.dir.y, s.dir.x );
+
+            steers[i].steer = 2 * dot(toRight, toTarget);
+        }
+    }
+
+    void MountainsRepelSystem(vector<SpatialComponent> spatials, vector<SteerComponent> steers, )
+    {
+        
     }
 
     void MovementSystem(vector<SpatialComponent> spatials, vector<MovementComponent> movements)
