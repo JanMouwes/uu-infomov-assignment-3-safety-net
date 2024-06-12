@@ -13,8 +13,8 @@ namespace Templ8
             TargetComponent t = targets.at(i);
             SpatialComponent s = spatials.at(i);
 
-            float2 toTarget = normalize( t.target - s.pos );
-            float2 toRight = make_float2( -s.dir.y, s.dir.x );
+            float2 toTarget = normalize(t.target - s.pos);
+            float2 toRight = make_float2(-s.dir.y, s.dir.x);
 
             steers[i].steer = 2 * dot(toRight, toTarget);
         }
@@ -22,7 +22,6 @@ namespace Templ8
 
     void MountainsRepelSystem(vector<SpatialComponent> spatials, vector<SteerComponent> steers, )
     {
-        
     }
 
     void MovementSystem(vector<SpatialComponent> spatials, vector<MovementComponent> movements)
@@ -38,33 +37,59 @@ namespace Templ8
     public:
         ParticlesSystem();
         void SpawnParticleExplosion(const VisualComponent& tank_visual, SpatialComponent tank_spatial);
+
     private:
         vector<vector<uint>> colours;
         vector<vector<SpatialComponent>> spatials;
     };
 
+    class BulletsSystem
+    {
+    public:
+        BulletsSystem();
+        void SpawnBullet(SpatialComponent spatial, int army, uint frame);
+    private:
+        static inline Sprite* flash = nullptr;
+        static inline Sprite* bullet = nullptr;
+        static inline float2* directions;
+
+        vector<VisualComponent> visuals;
+        vector<SpatialComponent> spatials;
+        vector<AttackComponent> attacks;
+        vector<LifetimeComponent> lifetimes;
+        vector<SpriteInstance> flashSprites;
+    };
+
     class TanksSystem
     {
     public:
-        TanksSystem(const ParticlesSystem& particle_system);
-
-        void NewTank(Sprite* s, int2 p, int2 t, uint f, int a);
+        TanksSystem(ParticlesSystem* particle_system, BulletsSystem* bullets_system, Grid* grid);
+        void SpawnTank(Sprite* s, int2 p, int2 t, uint f, int a);
 
         void Tick();
 
         void Draw();
 
     private:
-        void SpawnParticle(uint i);
-        void DespawnTank(uint i);
         static inline float2* directions;
+
+        void SpawnParticle(uint i);
+        void SpawnBullet(uint i);
+        void DespawnTank(uint i);
 
         vector<VisualComponent> visuals;
         vector<SpatialComponent> spatials;
         vector<TargetComponent> targets;
         vector<AttackComponent> attacks;
         vector<CollisionComponent> collisions;
-        ParticlesSystem particle_system;
-    };
 
+        ParticlesSystem* particles_system;
+        BulletsSystem* bullets_system;
+        Grid* grid;
+
+        /**
+         * Prevents simultaneous firing
+         */
+        uint cooldown = 0;
+    };
 }

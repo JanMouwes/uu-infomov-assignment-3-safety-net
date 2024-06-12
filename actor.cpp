@@ -45,38 +45,10 @@ bool Tank::Tick()
 
 bool Tank::TickCollision()
 {
-	// handle incoming bullets
-	if (collision.hit_by_bullet)
-	{
-		Game::actorPool.push_back( new ParticleExplosion( this ) );
-		return false;
-	}
-	return true;
 }
 
 void Tank::TickAttack()
 {
-	// fire bullet if cooled down and enemy is in range
-	if (attack.cool_down > 200 && Game::coolDown > 4)
-	{
-		// query a grid to rapidly obtain a list of nearby tanks
-		ActorList& nearby = Game::grid.FindNearbyTanks( spatial.pos + spatial.dir * 200 );
-		for (int i = 0; i < nearby.count; i++) if (nearby.tank[i]->attack.army != this->attack.army)
-		{
-			float2 toActor = normalize( nearby.tank[i]->spatial.pos - this->spatial.pos );
-			if (dot( toActor, spatial.dir ) > 0.8f /* within view cone*/)
-			{
-				// create a bullet and add it to the actor list
-				Bullet* newBullet = new Bullet( make_int2( spatial.pos + 20 * spatial.dir ), visual.frame, attack.army );
-				Game::actorPool.push_back( newBullet );
-				// reset cooldown timer so we don't do rapid fire
-				attack.cool_down = 0;
-				Game::coolDown = 0;
-				break;
-			}
-		}
-	}
-	attack.cool_down++;
 }
 
 void Tank::TickPhysics()
