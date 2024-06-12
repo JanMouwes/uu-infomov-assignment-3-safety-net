@@ -7,7 +7,7 @@
 // Handle to a component instance.
 struct SpatialInstance
 {
-    unsigned int index;
+    int index;
 };
 
 struct SpatialInstanceData
@@ -25,13 +25,18 @@ public:
         data_.Reserve(MAX_ENTITIES);
     }
 
-    // Create an instance from an index to the data arrays.
-    SpatialInstance MakeInstance(unsigned int index)
+    /*
+     * MakeInstance creates a new SpatialInstance given an index into SpatialManager's data_ array.
+     */
+    SpatialInstance MakeInstance(int index)
     {
         SpatialInstance inst = {index};
         return inst;
     }
 
+    /*
+     * Register registers a new entity with this SpatialManager. The entity's initial spatial data is set to d.
+     */
     SpatialInstance Register(entity_id e, SpatialInstanceData d)
     {
         map_.PutUnique(e);
@@ -40,9 +45,12 @@ public:
         return instance;
     }
 
+    // TODO: Destroying entities. See: https://bitsquid.blogspot.com/2014/09/building-data-oriented-entity-system.html.
 
-    // Returns the component instance for the specified entity or a nil instance
-    // if the entity doesn't have the component.
+    /*
+     * Lookup returns a SpatialInstance into this SpatialManager's data array. If the entity is not registered with this
+     * SpatialManager, it returns a SpatialInstance indexing into -1.
+     */
     SpatialInstance Lookup(entity_id e)
     {
         unsigned int index;
@@ -51,10 +59,22 @@ public:
         return MakeInstance(index);
     }
 
+    /*
+     * Exists returns true if the given entity is registered with this SpatialManager, otherwise it returns false.
+     */
+    bool Exists(entity_id e)
+    {
+        SpatialInstance instance = Lookup(e);
+        return instance.index != -1;
+    }
+
     float2 Pos(SpatialInstance instance) { return data_[instance.index].pos; }
     float2 Dir(SpatialInstance instance) { return data_[instance.index].dir; }
 
-    void Simulate()
+    /*
+     * Tick ticks the spatial component for all entities registered with this SpatialManager
+     */
+    void Tick()
     {
         for (entity_id i = 0; i < data_.GetNum(); ++i)
         {
@@ -63,8 +83,10 @@ public:
     }
 
 private:
-    // map_ adds a level of indirection that allows SpatialManager to store entities sparsely. Indexing map_[entity_id]
-    // yields the index of the component, or -1 if the component doesn't exist
+    /*
+     * map_ adds a level of indirection to SpatialManager that allows it to store entities sparsely. The entity 'e'
+     * has index 'i' in 'map_' iff the data stored at index 'i' in 'data_' belongs to 'e'.
+     */
     Templ8::SortedList<entity_id, MAX_ENTITIES> map_;
     Templ8::DynamicArray<SpatialInstanceData> data_;
 };
