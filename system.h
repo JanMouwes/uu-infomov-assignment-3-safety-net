@@ -35,7 +35,7 @@ namespace Templ8
     {
     public:
         TanksSystem(ParticlesSystem* particle_system, BulletsSystem* bullets_system, Grid* grid);
-        void SpawnTank(Sprite* s, int2 p, int2 t, uint f, int a);
+        Tank* SpawnTank(Sprite* s, int2 p, int2 t, uint f, int a);
 
         void Tick();
 

@@ -30,6 +30,15 @@ void Game::Init()
     bush[2]->ScaleAlpha(128);
     // pointer
     pointer = new SpriteInstance(new Sprite("assets/pointer.png"));
+
+
+    // create the static array of directions if it doesn't exist yet
+    if (Actor::directions == nullptr)
+    {
+        Actor::directions = new float2[256];
+        for (int i = 0; i < 256; i++) Actor::directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
+    }
+
     // create armies
     for (int y = 0; y < 16; y++)
         for (int x = 0; x < 16; x++) // main groups

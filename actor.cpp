@@ -2,31 +2,21 @@
 #include "game.h"
 
 // Tank constructor
-Tank::Tank(Sprite* s, int2 p, int2 t, uint f, int a)
+Tank::Tank(Sprite* s, const int2 p, const int2 t, const uint f, const int a): Tank(
+	VisualComponent {SpriteInstance(s), f},
+SpatialComponent{make_float2(p), directions[f]},
+TargetComponent {make_float2(t)},
+AttackComponent { a, 0 },
+CollisionComponent { false }
+	)
 {
-	// create sprite instance based on existing sprite
-	// sprite = SpriteInstance(s);
-	// set intial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: east
-	// visual.frame = f;
-	visual = VisualComponent {SpriteInstance(s), f};
+}
 
-	// create the static array of directions if it doesn't exist yet
-	if (directions == nullptr)
-	{
-		directions = new float2[256];
-		for (int i = 0; i < 256; i++) directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
-	}
-
-	// physical.pos = make_float(p);
-	// set direction based on specified orientation
-	// dir = directions[frame];
-	spatial = {make_float2(p), directions[visual.frame]};
-	// target = make_float2(t);
-	target =  {make_float2(t)};
-	// assign tank to the specified army
-	// army = a;
-	attack = AttackComponent { a, 0 };
-	collision = CollisionComponent { false };
+Tank::Tank(const VisualComponent& visual, const SpatialComponent spatial, const TargetComponent target, const AttackComponent attack,
+           const CollisionComponent collision): target(target), attack(attack), collision(collision)
+{
+	this->visual = visual;
+	this->spatial = spatial;
 }
 
 // Tank::Tick : tank behaviour
@@ -38,7 +28,7 @@ bool Tank::Tick()
 	TickAttack();
 
 	TickPhysics();
-	
+
 	// tanks never die
 	return true;
 }
@@ -99,7 +89,7 @@ void Tank::TickPhysics()
 }
 
 // Bullet constructor
-Bullet::Bullet(int2 p, uint f, int a)
+Bullet::Bullet(const int2 p, const uint f, const int a)
 {
 	if (flash == nullptr)
 	{
@@ -144,14 +134,14 @@ bool Bullet::Tick()
 
 	bool isAlive = TickLifetime();
 	if (!isAlive) return isAlive;
-	
+
 	bool isOutOfBounds = TickBounds();
 	if (isOutOfBounds) return isOutOfBounds;
 
 	bool notHitAtTank = TickCollision();
 	// When the bullet hits a tank, it dies.
 	if (!notHitAtTank) return notHitAtTank;
-	
+
 	// stayin' alive
 	return true;
 }
@@ -299,7 +289,7 @@ SpriteExplosion::SpriteExplosion(Bullet* bullet)
 }
 
 // Particle constructor
-Particle::Particle( Sprite* s, int2 p, uint c, uint d )
+Particle::Particle( Sprite* s, const int2 p, uint c, const uint d )
 {
 	physical.pos = make_float2( p );
 	physical.dir = make_float2( -1 - RandomFloat() * 4, 0 );

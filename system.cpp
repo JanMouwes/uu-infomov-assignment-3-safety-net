@@ -95,7 +95,7 @@ Templ8::TanksSystem::TanksSystem(ParticlesSystem* particle_system, BulletsSystem
     }
 }
 
-void Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, const uint f, const int a)
+Tank* Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, const uint f, const int a)
 {
     // create sprite instance based on existing sprite
     // set initial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: west
@@ -108,6 +108,14 @@ void Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, const
     // assign tank to the specified army
     attacks.push_back({ a, 0 });
     collisions.push_back({ false });
+
+    return new Tank(
+        visuals.back(),
+        spatials.back(),
+        targets.back(),
+        attacks.back(),
+        collisions.back()
+    );
 }
 
 void Templ8::TanksSystem::Tick()
