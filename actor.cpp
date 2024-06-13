@@ -1,17 +1,6 @@
 #include "precomp.h"
 #include "game.h"
 
-// Tank constructor
-Tank::Tank(Sprite* s, const int2 p, const int2 t, const uint f, const int a): Tank(
-	VisualComponent {SpriteInstance(s), f},
-SpatialComponent{make_float2(p), directions[f]},
-TargetComponent {make_float2(t)},
-AttackComponent { a, 0 },
-CollisionComponent { false }
-	)
-{
-}
-
 Tank::Tank(const VisualComponent& visual, const SpatialComponent spatial, const TargetComponent target, const AttackComponent attack,
            const CollisionComponent collision): target(target), attack(attack), collision(collision)
 {

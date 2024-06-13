@@ -47,8 +47,8 @@ void Game::Init()
     for (int y = 0; y < 16; y++)
         for (int x = 0; x < 16; x++) // main groups
         {
-            Actor* army1Tank = new Tank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
-            Actor* army2Tank = new Tank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
+            Actor* army1Tank = tanks_system->SpawnTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
+            Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
 
@@ -58,8 +58,8 @@ void Game::Init()
     for (int y = 0; y < 12; y++)
         for (int x = 0; x < 12; x++) // backup
         {
-            Actor* army1Tank = new Tank(tank1, make_int2(40 + x * 32, 2620 - y * 32), make_int2(5000, -500), 0, 0);
-            Actor* army2Tank = new Tank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
+            Actor* army1Tank = tanks_system->SpawnTank(tank1, make_int2(40 + x * 32, 2620 - y * 32), make_int2(5000, -500), 0, 0);
+            Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
 
@@ -69,8 +69,8 @@ void Game::Init()
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++) // small forward groups
         {
-            Actor* army1Tank = new Tank(tank1, make_int2(1440 + x * 32, 2220 - y * 32), make_int2(3500, -500), 0, 0);
-            Actor* army2Tank = new Tank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
+            Actor* army1Tank = tanks_system->SpawnTank(tank1, make_int2(1440 + x * 32, 2220 - y * 32), make_int2(3500, -500), 0, 0);
+            Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
 

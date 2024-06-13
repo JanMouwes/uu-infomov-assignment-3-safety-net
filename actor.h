@@ -28,7 +28,6 @@ public:
 class Tank : public Actor
 {
 public:
-	Tank( Sprite* s, int2 p, int2 t, uint f, int a );
 	Tank(const VisualComponent& visual, SpatialComponent spatial, TargetComponent target, AttackComponent attack, CollisionComponent collision );
 	bool Tick();
 	uint GetType() { return Actor::TANK; }
