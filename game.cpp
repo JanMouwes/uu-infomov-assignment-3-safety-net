@@ -38,8 +38,8 @@ void Game::Init()
     for (int y = 0; y < 16; y++)
         for (int x = 0; x < 16; x++) // main groups
         {
-            Actor* army1Tank = tanks_system->SpawnTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
-            Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
+            Tank* army1Tank = tanks_system->SpawnTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
+            Tank* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
         }
@@ -138,11 +138,16 @@ void Game::Tick(float deltaTime)
     grid.Populate(actorPool);
     // update and render actors
     pointer->Remove();
+
+    // Chris: I've added sprite.Remove() to tanks_system->Tick(). It works. My best guess is that it has to do with the
+    // initialization logic of Actor::Tank. When I set a break-point at the end of Game::Tick, I also see that the
+    // prite pointed to by TankSystem::Tank is the same as tank1, but for Actor::Tank it is differnet.
+    tanks_system->Tick();
+    
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
 
-    tanks_system->Tick();
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())
         {

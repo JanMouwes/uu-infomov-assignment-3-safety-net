@@ -122,6 +122,12 @@ Tank* Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, cons
 
 void Templ8::TanksSystem::Tick()
 {
+    for (uint i = 0; i < visuals.size(); ++i)
+    {
+        VisualComponent visual = visuals[i];
+        visual.sprite.Remove();
+    }
+    
     for (uint i = 0; i < collisions.size(); ++i)
     {
         const CollisionComponent collision = collisions[i];
