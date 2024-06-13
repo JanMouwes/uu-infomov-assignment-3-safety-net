@@ -141,7 +141,7 @@ void Game::Tick(float deltaTime)
 
     // Chris: I've added sprite.Remove() to tanks_system->Tick(). It works. My best guess is that it has to do with the
     // initialization logic of Actor::Tank. When I set a break-point at the end of Game::Tick, I also see that the
-    // prite pointed to by TankSystem::Tank is the same as tank1, but for Actor::Tank it is differnet.
+    // sprite pointed to by TankSystem::Tank is the same as tank1, but for Actor::Tank it is different.
     tanks_system->Tick();
     
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
