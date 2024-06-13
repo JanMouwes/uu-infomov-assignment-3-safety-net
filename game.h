@@ -1,5 +1,6 @@
 #pragma once
 #include "entity.h"
+#include "system.h"
 
 namespace Tmpl8
 {
@@ -115,5 +116,9 @@ namespace Tmpl8
         static inline vector<AttackComponent> attacks;
         static inline vector<CollisionComponent> collisions;
         static inline vector<LifetimeComponent> lifetimes;
+    private:
+        Templ8::BulletsSystem* bullets_system;
+        Templ8::ParticlesSystem* particles_system;
+        Templ8::TanksSystem* tanks_system;
     };
 } // namespace Tmpl8

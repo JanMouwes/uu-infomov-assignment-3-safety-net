@@ -37,7 +37,11 @@ void Game::Init()
     {
         Actor::directions = new float2[256];
         for (int i = 0; i < 256; i++) Actor::directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
-    }
+    }\
+
+    bullets_system = new Templ8::BulletsSystem();
+    particles_system = new Templ8::ParticlesSystem();
+    tanks_system = new Templ8::TanksSystem(particles_system, bullets_system, &grid);
 
     // create armies
     for (int y = 0; y < 16; y++)
