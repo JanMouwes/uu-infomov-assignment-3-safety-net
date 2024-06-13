@@ -5,12 +5,11 @@ template <typename T>
 void vector_swap_and_delete(vector<T>* vec, const uint i)
 {
     T last = vec->back();
-    T to_delete = vec[i];
+    T to_delete = (*vec)[i];
     vec->pop_back();
-    if (last != to_delete) vec[i] = last;
 
-    // TODO I don't think this delete is necessary anymore, but I'm focussing on other things first
-    delete to_delete;
+    bool was_last_i = i == vec->size();
+    if (was_last_i) (*vec)[i] = last;
 }
 
 Templ8::ParticlesSystem::ParticlesSystem()
@@ -157,7 +156,7 @@ void Templ8::TanksSystem::Draw()
 
 void Templ8::TanksSystem::SpawnParticle(const uint i)
 {
-    this->particles_system.SpawnParticleExplosion(visuals[i], spatials[i]);
+    this->particles_system->SpawnParticleExplosion(visuals[i], spatials[i]);
 }
 
 void Templ8::TanksSystem::SpawnBullet(const uint i)
@@ -166,7 +165,7 @@ void Templ8::TanksSystem::SpawnBullet(const uint i)
     const AttackComponent attack = attacks[i];
     const VisualComponent visual = visuals[i];
 
-    bullets_system.SpawnBullet(spatial, attack.army, visual.frame);
+    bullets_system->SpawnBullet(spatial, attack.army, visual.frame);
 }
 
 

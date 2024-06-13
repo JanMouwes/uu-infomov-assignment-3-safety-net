@@ -147,8 +147,6 @@ void Game::Tick(float deltaTime)
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
-
-    Templ8::TargetsAttractSystem(targets, spatials, steers);
     
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())

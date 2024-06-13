@@ -2,13 +2,13 @@
 #include "game.h"
 
 // Tank constructor
-Tank::Tank(Sprite* s, int2 p, int2 t, int f, int a)
+Tank::Tank(Sprite* s, int2 p, int2 t, uint f, int a)
 {
 	// create sprite instance based on existing sprite
 	// sprite = SpriteInstance(s);
 	// set intial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: east
 	// visual.frame = f;
-	visual = {SpriteInstance(s), f};
+	visual = VisualComponent {SpriteInstance(s), f};
 
 	// create the static array of directions if it doesn't exist yet
 	if (directions == nullptr)
@@ -45,6 +45,7 @@ bool Tank::Tick()
 
 bool Tank::TickCollision()
 {
+	return true;
 }
 
 void Tank::TickAttack()
@@ -98,7 +99,7 @@ void Tank::TickPhysics()
 }
 
 // Bullet constructor
-Bullet::Bullet(int2 p, int f, int a)
+Bullet::Bullet(int2 p, uint f, int a)
 {
 	if (flash == nullptr)
 	{

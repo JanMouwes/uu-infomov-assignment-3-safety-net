@@ -28,7 +28,7 @@ public:
 class Tank : public Actor
 {
 public:
-	Tank( Sprite* s, int2 p, int2 t, int f, int a );
+	Tank( Sprite* s, int2 p, int2 t, uint f, int a );
 	bool Tick();
 	uint GetType() { return Actor::TANK; }
 
@@ -46,7 +46,7 @@ private:
 class Bullet : public Actor
 {
 public:
-	Bullet( int2 p, int f, int a );
+	Bullet( int2 p, uint f, int a );
 	void Remove();
 	bool Tick();
 	void Draw();

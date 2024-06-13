@@ -72,7 +72,7 @@ namespace Tmpl8
             return e;
         }
 
-        entity NewBullet(int2 p, int f, int a)
+        entity NewBullet(int2 p, uint f, int a)
         {
             if (flash == nullptr || bullet == nullptr)
             {
