@@ -50,7 +50,7 @@ namespace Templ8
 
         vector<VisualComponent> visuals;
         vector<SpatialComponent> spatials;
-        vector<TargetComponent> targets;
+        vector<SteerComponent> steers;
         vector<AttackComponent> attacks;
         vector<CollisionComponent> collisions;
 

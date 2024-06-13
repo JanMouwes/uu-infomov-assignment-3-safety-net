@@ -8,15 +8,6 @@
 // -----------------------------------------------------------
 void Game::Init()
 {
-    spatials.resize(MAX_ENTITIES);
-    movements.resize(MAX_ENTITIES);
-    steers.resize(MAX_ENTITIES);
-    targets.resize(MAX_ENTITIES);
-    visuals.resize(MAX_ENTITIES);
-    animations.resize(MAX_ENTITIES);
-    attacks.resize(MAX_ENTITIES);
-    collisions.resize(MAX_ENTITIES);
-    lifetimes.resize(MAX_ENTITIES);
 
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), 36, 256);
@@ -51,9 +42,6 @@ void Game::Init()
             Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
-
-            NewTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
-            NewTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
         }
     for (int y = 0; y < 12; y++)
         for (int x = 0; x < 12; x++) // backup
@@ -62,9 +50,6 @@ void Game::Init()
             Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
-
-            NewTank(tank1, make_int2(40 + x * 32, 2620 - y * 32), make_int2(5000, -500), 0, 0);
-            NewTank(tank2, make_int2(3900 - x * 32, y * 32 + 300), make_int2(-1000, 4000), 10, 1);
         }
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++) // small forward groups
@@ -73,9 +58,6 @@ void Game::Init()
             Actor* army2Tank = tanks_system->SpawnTank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
             actorPool.push_back(army1Tank);
             actorPool.push_back(army2Tank);
-
-            NewTank(tank1, make_int2(1440 + x * 32, 2220 - y * 32), make_int2(3500, -500), 0, 0);
-            NewTank(tank2, make_int2(2400 - x * 32, y * 32 + 900), make_int2(1300, 4000), 128, 1);
         }
     // load mountain peaks
     Surface mountains("assets/peaks.png");
@@ -94,7 +76,6 @@ void Game::Init()
         int d = (RandomUInt() & 15) - 8;
 
         sand.push_back(new Particle(bush[i % 3], make_int2(x, y), map.bitmap->pixels[x + y * map.bitmap->width], d));
-        NewParticle(bush[i % 3], make_int2(x, y), d);
     }
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
@@ -160,7 +141,8 @@ void Game::Tick(float deltaTime)
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
-    
+
+    tanks_system->Tick();
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())
         {

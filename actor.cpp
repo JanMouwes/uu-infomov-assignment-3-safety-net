@@ -1,11 +1,13 @@
 #include "precomp.h"
 #include "game.h"
 
-Tank::Tank(const VisualComponent& visual, const SpatialComponent spatial, const TargetComponent target, const AttackComponent attack,
-           const CollisionComponent collision): target(target), attack(attack), collision(collision)
+Tank::Tank(VisualComponent* visual, SpatialComponent* spatial, SteerComponent* steer, AttackComponent* attack,
+           CollisionComponent* collision): Actor(), steer(steer), attack(attack), collision(collision)
 {
 	this->visual = visual;
 	this->spatial = spatial;
+
+	this->collision = new CollisionComponent();
 }
 
 // Tank::Tick : tank behaviour
@@ -35,11 +37,11 @@ void Tank::TickPhysics()
 {
 	// accumulate forces for steering left or right
 	// 1. target attracts
-	float2 toTarget = normalize( target.target - spatial.pos );
-	float2 toRight = make_float2( -spatial.dir.y, spatial.dir.x );
-	steer.steer = 2 * dot( toRight, toTarget );
+	float2 toTarget = normalize( steer->target - spatial->pos );
+	float2 toRight = make_float2( -spatial->dir.y, spatial->dir.x );
+	steer->steer = 2 * dot( toRight, toTarget );
 	// 2. mountains repel
-	float2 probePos = spatial.pos + 8 * spatial.dir;
+	float2 probePos = spatial->pos + 8 * spatial->dir;
 	for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
 	{
 		float peakMag = Game::peaks[i].z / 2;
@@ -47,34 +49,35 @@ void Tank::TickPhysics()
 		float sqrDist = dot( toPeak, toPeak );
 		if (sqrDist < sqrf( peakMag ))
 			toPeak = normalize( toPeak ),
-			steer.steer -= dot( toRight, toPeak ) * peakMag / sqrtf( sqrDist );
+			steer->steer -= dot( toRight, toPeak ) * peakMag / sqrtf( sqrDist );
 	}
 	// 3. evade other tanks
 	ActorList& nearby = Game::grid.FindNearbyTanks( this );
 	for (int i = 0; i < nearby.count; i++)
 	{
 		Tank* tank = nearby.tank[i];
-		float2 toActor = tank->spatial.pos - this->spatial.pos;
+		float2 toActor = tank->spatial->pos - this->spatial->pos;
 		float sqrDist = dot( toActor, toActor );
-		if (sqrDist < 400 && dot( toActor, spatial.dir ) > 0.35f)
+		if (sqrDist < 400 && dot( toActor, spatial->dir ) > 0.35f)
 		{
-			steer.steer -= (400 - sqrDist) * 0.02f * dot( toActor, toRight ) > 0 ? 1 : -1;
+			steer->steer -= (400 - sqrDist) * 0.02f * dot( toActor, toRight ) > 0 ? 1 : -1;
 			break;
 		}
 	}
 	// adjust heading and move
-	movement.velocity = make_float2(0.5f);
-	if (steer.steer < -0.2f) visual.frame = (visual.frame + 255 /* i.e. -1 */) & 255, spatial.dir = directions[visual.frame], movement.velocity = make_float2(0.35f);
-	else if (steer.steer > 0.2f) visual.frame = (visual.frame + 1) & 255, spatial.dir = directions[visual.frame], make_float2(0.35f);
+	spatial->velocity = make_float2(0.5f);
+	if (steer->steer < -0.2f) visual->frame = (visual->frame + 255 /* i.e. -1 */) & 255, spatial->dir = directions[visual->frame], spatial->velocity = make_float2(0.35f);
+	else if (steer->steer > 0.2f) visual->frame = (visual->frame + 1) & 255, spatial->dir = directions[visual->frame], make_float2(0.35f);
 	else {
 		// draw tank tracks, only when not turning
-		float2 perp( -spatial.dir.y, spatial.dir.x );
-		float2 trackPos1 = spatial.pos - 9 * spatial.dir + 4.5f * perp;
-		float2 trackPos2 = spatial.pos - 9 * spatial.dir - 5.5f * perp;
+		float2 perp( -spatial->dir.y, spatial->dir.x );
+		float2 trackPos1 = spatial->pos - 9 * spatial->dir + 4.5f * perp;
+		float2 trackPos2 = spatial->pos - 9 * spatial->dir - 5.5f * perp;
 		Game::map.bitmap->BlendBilerp( trackPos1.x, trackPos1.y, 0, 12 );
 		Game::map.bitmap->BlendBilerp( trackPos2.x, trackPos2.y, 0, 12 );
 	}
-	spatial.pos += spatial.dir * movement.velocity;
+	spatial->pos += spatial->dir * spatial->velocity;
+	spatial->pos = spatial->pos;
 }
 
 // Bullet constructor
@@ -113,8 +116,6 @@ void Bullet::Remove()
 	else
 		visual.sprite.Remove();
 }
-	// TODO: Velocity != acceleration. I am not a physicist but I would encode this using an AccelerationComponent and an
-	// AccelerationSystem. Basicaly it boils down needing to update
 
 // Bullet behaviour
 bool Bullet::Tick()
@@ -166,11 +167,11 @@ bool Bullet::TickCollision()
 	for (int s = (int)tanks.count, i = 0; i < s; i++)
 	{
 		Tank* tank = tanks.tank[i]; // a tank, thankfully
-		if (tank->attack.army == this->attack.army) continue; // no friendly fire. Disable for madness.
-		float dist = length( this->spatial.pos - tank->spatial.pos );
+		if (tank->attack->army == this->attack.army) continue; // no friendly fire. Disable for madness.
+		float dist = length( this->spatial.pos - tank->spatial->pos );
 		if (dist < 10)
 		{
-			tank->collision.hit_by_bullet = true; // tank will need to draw it's own conclusion
+			tank->collision->hit_by_bullet = true; // tank will need to draw it's own conclusion
 			return false; // bees die from stinging. Disable for rail gun.
 		}
 	}
@@ -191,10 +192,10 @@ void Bullet::Draw()
 ParticleExplosion::ParticleExplosion(Tank* tank)
 {
 	// read the pixels from the sprite of the specified tank
-	const Sprite* sprite = tank->visual.sprite.sprite;
+	const Sprite* sprite = tank->visual->sprite.sprite;
 	const uint size = sprite->frameSize;
 	const uint stride = sprite->frameSize * sprite->frameCount;
-	const uint* src = sprite->pixels + tank->visual.frame * size;
+	const uint* src = sprite->pixels + tank->visual->frame * size;
 	for (uint y = 0; y < size; y++) for (uint x = 0; x < size; x++)
 	{
 		const uint pixel = src[x + y * stride];
@@ -202,8 +203,8 @@ ParticleExplosion::ParticleExplosion(Tank* tank)
 		if (alpha > 64) for (int i = 0; i < 2; i++) // twice for a denser cloud
 		{
 			color.push_back( pixel & 0xffffff );
-			const float fx = tank->spatial.pos.x - size * 0.5f + x;
-			const float fy = tank->spatial.pos.y - size * 0.5f + y;
+			const float fx = tank->spatial->pos.x - size * 0.5f + x;
+			const float fy = tank->spatial->pos.y - size * 0.5f + y;
 			pos.push_back( make_float2( fx, fy ) );
 			dir.push_back( make_float2( 0, 0 ) );
 		}
@@ -255,6 +256,8 @@ void ParticleExplosion::Remove()
 		Game::map.bitmap->Plot( intPos.x, intPos.y + 1, backup[i * 4 + 2] );
 		Game::map.bitmap->Plot( intPos.x + 1, intPos.y + 1, backup[i * 4 + 3] );
 	}
+
+	visual.sprite.Remove();
 }
 
 // SpriteExplosion constructor

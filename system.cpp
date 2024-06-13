@@ -1,6 +1,8 @@
 ﻿#include "precomp.h"
 #include "system.h"
 
+#include "game.h"
+
 template <typename T>
 void vector_swap_and_delete(vector<T>* vec, const uint i)
 {
@@ -103,18 +105,18 @@ Tank* Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, cons
 
     // set direction based on specified orientation
     spatials.push_back({ make_float2(p), directions[f] });
-    targets.push_back({ make_float2(t) });
+    steers.push_back({ make_float2(t), 0 });
 
     // assign tank to the specified army
     attacks.push_back({ a, 0 });
     collisions.push_back({ false });
 
     return new Tank(
-        visuals.back(),
-        spatials.back(),
-        targets.back(),
-        attacks.back(),
-        collisions.back()
+        &visuals.back(),
+        &spatials.back(),
+        &steers.back(),
+        &attacks.back(),
+        &collisions.back()
     );
 }
 
@@ -140,11 +142,11 @@ void Templ8::TanksSystem::Tick()
         if (attack->cool_down > 200 && cooldown > 4)
         {
             // query a grid to rapidly obtain a list of nearby tanks
-            ActorList& nearby = grid->FindNearbyTanks(spatial.pos + spatial.dir * 200);
+            ActorList& nearby = Game::grid.FindNearbyTanks(spatial.pos + spatial.dir * 200);
             for (int nearby_i = 0; nearby_i < nearby.count; nearby_i++)
-                if (nearby.tank[nearby_i]->attack.army != attack->army)
+                if (nearby.tank[nearby_i]->attack->army != attack->army)
                 {
-                    float2 to_actor = normalize(nearby.tank[nearby_i]->spatial.pos - spatial.pos);
+                    float2 to_actor = normalize(nearby.tank[nearby_i]->spatial->pos - spatial.pos);
                     if (dot(to_actor, spatial.dir) > 0.8f /* within view cone*/)
                     {
                         SpawnBullet(i);
@@ -181,7 +183,7 @@ void Templ8::TanksSystem::DespawnTank(const uint i)
 {
     vector_swap_and_delete(&visuals, i);
     vector_swap_and_delete(&spatials, i);
-    vector_swap_and_delete(&targets, i);
+    vector_swap_and_delete(&steers, i);
     vector_swap_and_delete(&attacks, i);
     vector_swap_and_delete(&collisions, i);
 }

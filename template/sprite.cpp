@@ -153,10 +153,14 @@ void Sprite::ScaleAlpha(uint scale)
     }
 }
 
-void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
+void SpriteInstance::Draw(Surface* target, float2 pos, uint frame)
 {
     // save the area of target that we are about to overwrite
-    if (!backup) backup = new uint[sqr(sprite->frameSize + 1)];
+    if (!backup)
+    {
+        uint size = sqr(sprite->frameSize + 1);
+        backup = new uint[size];
+    }
     const int2 intPos = make_int2(pos);
     int x1 = intPos.x - sprite->frameSize / 2, x2 = x1 + sprite->frameSize;
     int y1 = intPos.y - sprite->frameSize / 2, y2 = y1 + sprite->frameSize;
@@ -228,7 +232,7 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
     }
 }
 
-void SpriteInstance::DrawAdditive(Surface* target, float2 pos, int frame)
+void SpriteInstance::DrawAdditive(Surface* target, float2 pos, uint frame)
 {
     // save the area of target that we are about to overwrite
     if (!backup) backup = (uint*)_aligned_malloc(4 * sprite->frameSize * sprite->frameSize, 64);

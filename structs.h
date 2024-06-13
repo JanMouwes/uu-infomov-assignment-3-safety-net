@@ -2,25 +2,17 @@
 
 namespace Tmpl8
 {
-    struct SpatialComponent 
+    struct SpatialComponent
     {
         float2 pos;
         float2 dir;
-    };
-
-    struct MovementComponent
-    {
-        float2 velocity;
+        float2 velocity = make_float2(0);
     };
 
     struct SteerComponent
     {
-        float steer;
-    };
-
-    struct TargetComponent
-    {
         float2 target;
+        float steer;
     };
 
 

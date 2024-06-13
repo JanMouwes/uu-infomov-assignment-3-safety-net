@@ -38,8 +38,8 @@ namespace Tmpl8
         {
         }
 
-        void Draw(Surface* target, float2 pos, int frame);
-        void DrawAdditive(Surface* target, float2 pos, int frame);
+        void Draw(Surface* target, float2 pos, uint frame);
+        void DrawAdditive(Surface* target, float2 pos, uint frame);
         void Remove();
         Sprite* sprite = 0;
         uint* backup = 0;
