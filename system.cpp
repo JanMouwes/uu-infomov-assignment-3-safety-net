@@ -9,7 +9,7 @@ void vector_swap_and_delete(vector<T>* vec, const uint i)
     vec->pop_back();
 
     bool was_last_i = i == vec->size();
-    if (was_last_i) (*vec)[i] = last;
+    if (!was_last_i) (*vec)[i] = last;
 }
 
 Templ8::ParticlesSystem::ParticlesSystem()
