@@ -21,8 +21,12 @@ class Tank : public Actor
 {
 public:
 	Tank(VisualComponent* visual, SpatialComponent* spatial, SteerComponent* steer, AttackComponent* attack,
-	     CollisionComponent* collision);
-	void Remove() override { visual->sprite.Remove(); }
+	     CollisionComponent* collision):
+		Actor(), visual(visual), spatial(spatial), steer(steer), attack(attack), collision(collision)
+	{
+	}
+
+	void Remove() override {  }
 	bool Tick() override;
 	uint GetType() override { return Actor::TANK; }
 
@@ -31,6 +35,7 @@ public:
 	SteerComponent* steer;
 	AttackComponent* attack;
 	CollisionComponent* collision;
+
 private:
 	bool TickCollision();
 	void TickAttack();

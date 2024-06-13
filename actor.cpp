@@ -1,15 +1,6 @@
 #include "precomp.h"
 #include "game.h"
 
-Tank::Tank(VisualComponent* visual, SpatialComponent* spatial, SteerComponent* steer, AttackComponent* attack,
-           CollisionComponent* collision): Actor(), steer(steer), attack(attack), collision(collision)
-{
-	this->visual = visual;
-	this->spatial = spatial;
-
-	this->collision = new CollisionComponent();
-}
-
 // Tank::Tick : tank behaviour
 bool Tank::Tick()
 {
@@ -77,7 +68,6 @@ void Tank::TickPhysics()
 		Game::map.bitmap->BlendBilerp( trackPos2.x, trackPos2.y, 0, 12 );
 	}
 	spatial->pos += spatial->dir * spatial->velocity;
-	spatial->pos = spatial->pos;
 }
 
 // Bullet constructor
@@ -93,7 +83,7 @@ Bullet::Bullet(const int2 p, const uint f, const int a)
 	// create sprite instances based on the static sprite data
 	// sprite = SpriteInstance(bullet);
 	// frame = f;
-	visual = {SpriteInstance(bullet), f};
+	visual = VisualComponent {SpriteInstance(bullet), f};
 
 	// set position and direction
 	// pos = make_float2(p);

@@ -34,7 +34,7 @@ namespace Tmpl8
     public:
         SpriteInstance() = default;
 
-        SpriteInstance(Sprite* s) : sprite(s)
+        SpriteInstance(Sprite* const s) : sprite(s)
         {
         }
 

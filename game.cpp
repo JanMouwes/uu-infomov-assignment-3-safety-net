@@ -1,6 +1,5 @@
 #include "precomp.h"
 #include "game.h"
-#include "entity.h"
 #include "system.h"
 
 // -----------------------------------------------------------
@@ -39,8 +38,11 @@ void Game::Init()
         for (int x = 0; x < 16; x++) // main groups
         {
             Tank* army1Tank = tanks_system->SpawnTank(tank1, make_int2(520 + x * 32, 2420 - y * 32), make_int2(5000, -500), 0, 0);
-            Tank* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army1Tank);
+            /*
+             * Jan: before push_back, army1Tank is fine. After push_back, it's not. What's going on?
+             */
+            Tank* army2Tank = tanks_system->SpawnTank(tank2, make_int2(3300 - x * 32, y * 32 + 700), make_int2(-1000, 4000), 10, 1);
             actorPool.push_back(army2Tank);
         }
     for (int y = 0; y < 12; y++)
@@ -139,14 +141,15 @@ void Game::Tick(float deltaTime)
     // update and render actors
     pointer->Remove();
 
+
+    for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
+    for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
+    for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
+
     // Chris: I've added sprite.Remove() to tanks_system->Tick(). It works. My best guess is that it has to do with the
     // initialization logic of Actor::Tank. When I set a break-point at the end of Game::Tick, I also see that the
     // sprite pointed to by TankSystem::Tank is the same as tank1, but for Actor::Tank it is different.
     tanks_system->Tick();
-    
-    for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
-    for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
-    for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
 
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())

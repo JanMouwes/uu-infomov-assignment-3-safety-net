@@ -99,17 +99,24 @@ Templ8::TanksSystem::TanksSystem(ParticlesSystem* particle_system, BulletsSystem
 
 Tank* Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, const uint f, const int a)
 {
+    VisualComponent visual = VisualComponent{ SpriteInstance(s), f };
+    SpatialComponent spatial = SpatialComponent { make_float2(p), directions[f] };
+    SteerComponent steer = SteerComponent{ make_float2(t), 0 };
+    AttackComponent attack = AttackComponent { a, 0 };
+    CollisionComponent collision = CollisionComponent{ false };
+
     // create sprite instance based on existing sprite
     // set initial orientation / sprite visual.frame; 0: north; 64: east; 128: south; 192: west
-    visuals.push_back({ SpriteInstance(s), f });
+    visuals.push_back(visual);
+    spatials.push_back(spatial);
+    steers.push_back(steer);
+    attacks.push_back(attack);
+    collisions.push_back(collision);
 
-    // set direction based on specified orientation
-    spatials.push_back({ make_float2(p), directions[f] });
-    steers.push_back({ make_float2(t), 0 });
-
-    // assign tank to the specified army
-    attacks.push_back({ a, 0 });
-    collisions.push_back({ false });
+    assert(visuals.size() == spatials.size());
+    assert(visuals.size() == steers.size());
+    assert(visuals.size() == attacks.size());
+    assert(visuals.size() == collisions.size());
 
     return new Tank(
         &visuals.back(),

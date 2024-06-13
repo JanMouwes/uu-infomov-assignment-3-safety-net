@@ -12,12 +12,14 @@ void Grid::Populate( const vector<Actor*>& actors )
 	float2 posScale = GRIDSIZE * make_float2( 1.0f / mapSize.x, 1.0f / mapSize.y );
 	for( int s = (int)actors.size(), i = 0; i < s; i++ ) if (actors[i]->GetType() == Actor::TANK)
 	{
+		Tank* tank = (Tank*) actors[i];
 		// calculate actor position in grid space
-		int2 gridPos = make_int2( posScale * ((Tank*)actors[i])->spatial->pos );
+		int2 gridPos = make_int2( posScale * tank->spatial
+			->pos );
 		// add actor to cell
 		if (gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= GRIDSIZE || gridPos.y >= GRIDSIZE) continue;
 		ActorList& c = cell[gridPos.x + gridPos.y * GRIDSIZE];
-		c.tank[c.count++ & (CELLCAPACITY - 1) /* better than overflow */] = (Tank*)actors[i];
+		c.tank[c.count++ & (CELLCAPACITY - 1) /* better than overflow */] = tank;
 	}
 }
 

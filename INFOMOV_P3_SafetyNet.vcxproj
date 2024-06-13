@@ -143,7 +143,6 @@
   <ItemGroup>
     <ClInclude Include="actor.h" />
     <ClInclude Include="cl\tools.cl" />
-    <ClInclude Include="entity.h" />
     <ClInclude Include="flag.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="grid.h" />
