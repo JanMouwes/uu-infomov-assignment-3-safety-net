@@ -39,20 +39,19 @@ namespace Tmpl8
         Sprite *tank1, *tank2; // tank sprites
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
-
+        
         // static data, for global access
-
-        static inline Grid grid; // tank grid for faster range queries
         static inline Map map; // the map
         static inline vector<Actor*> actorPool; // actor pool
         static inline vector<float3> peaks; // mountain peaks to evade
         static inline vector<Particle*> sand; // sand particles
+        static inline Grid grid; // actor grid for faster range queries
         static inline int coolDown = 0; // used to prevent simultaneous firing
 
         static inline float2* directions;
 
         static inline Sprite* flash = 0, *bullet = 0;
-
+        
         // Entities
         entity NewTank(Sprite* s, int2 p, int2 t, int f, int a)
         {
@@ -62,7 +61,7 @@ namespace Tmpl8
                 directions = new float2[256];
                 for (int i = 0; i < 256; i++) directions[i] = make_float2(sinf(i * PI / 128), -cosf(i * PI / 128));
             }
-
+            
             entity e = Templ8::NewEntity();
             visuals[e] = {SpriteInstance(s)};
             spatials[e] = {make_float2(p), directions[f]};
@@ -73,7 +72,7 @@ namespace Tmpl8
             return e;
         }
 
-        entity NewBullet(int2 p, uint f, int a)
+        entity NewBullet(int2 p, int f, int a)
         {
             if (flash == nullptr || bullet == nullptr)
             {
@@ -83,7 +82,7 @@ namespace Tmpl8
             }
 
             entity e = Templ8::NewEntity();
-	        visuals[e] = VisualComponent {SpriteInstance(bullet), f};
+	        visuals[e] = {SpriteInstance(bullet), f};
 	        spatials[e] = {make_float2(p), directions[f]};
             lifetimes[e] = { 0 };
             attacks[e].army = a;
@@ -105,9 +104,10 @@ namespace Tmpl8
 
             return e;
         }
-
+       
         // Components
         static inline vector<SpatialComponent> spatials;
+        static inline vector<MovementComponent> movements;
         static inline vector<SteerComponent> steers;
         static inline vector<TargetComponent> targets;
         static inline vector<VisualComponent> visuals;

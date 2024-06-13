@@ -1,8 +1,6 @@
 ﻿#include "precomp.h"
 #include "system.h"
 
-#include "game.h"
-
 template <typename T>
 void vector_swap_and_delete(vector<T>* vec, const uint i)
 {
@@ -84,11 +82,12 @@ void Templ8::BulletsSystem::SpawnBullet(const SpatialComponent spatial, const in
 }
 
 
-Templ8::TanksSystem::TanksSystem(ParticlesSystem* particles_system, BulletsSystem* bullets_system,
-                                 vector<float3>* peaks): particles_system(particles_system),
-                                                         bullets_system(bullets_system),
-                                                         peaks(peaks)
+Templ8::TanksSystem::TanksSystem(ParticlesSystem* particle_system, BulletsSystem* bullets_system, Grid* grid)
 {
+    this->particles_system = particle_system;
+    this->bullets_system = bullets_system;
+    this->grid = grid;
+
     // create the static array of directions if it doesn't exist yet
     if (directions == nullptr)
     {
@@ -110,12 +109,10 @@ void Templ8::TanksSystem::SpawnTank(Sprite* s, const int2 p, const int2 t, const
     // assign tank to the specified army
     attacks.push_back({ a, 0 });
     collisions.push_back({ false });
-    steers.push_back({ 0 });
 }
 
 void Templ8::TanksSystem::Tick()
 {
-    Game::grid.Populate(spatials);
     for (uint i = 0; i < collisions.size(); ++i)
     {
         const CollisionComponent collision = collisions[i];
@@ -136,14 +133,11 @@ void Templ8::TanksSystem::Tick()
         if (attack->cool_down > 200 && cooldown > 4)
         {
             // query a grid to rapidly obtain a list of nearby tanks
-            ActorList& nearby = Game::grid.FindNearbyTanks(spatial.pos + spatial.dir * 200, i);
+            ActorList& nearby = grid->FindNearbyTanks(spatial.pos + spatial.dir * 200);
             for (int nearby_i = 0; nearby_i < nearby.count; nearby_i++)
-            {
-                AttackComponent other_attack = attacks[nearby.tank[nearby_i]];
-                SpatialComponent other_spatial = spatials[nearby.tank[nearby_i]];
-                if (other_attack.army != attack->army)
+                if (nearby.tank[nearby_i]->attack.army != attack->army)
                 {
-                    float2 to_actor = normalize(other_spatial.pos - spatial.pos);
+                    float2 to_actor = normalize(nearby.tank[nearby_i]->spatial.pos - spatial.pos);
                     if (dot(to_actor, spatial.dir) > 0.8f /* within view cone*/)
                     {
                         SpawnBullet(i);
@@ -152,68 +146,8 @@ void Templ8::TanksSystem::Tick()
                         break;
                     }
                 }
-            }
         }
         attack->cool_down++;
-    }
-
-    for (uint i = 0; i < spatials.size(); ++i)
-    {
-        TargetComponent target = targets[i];
-        SpatialComponent spatial = spatials[i];
-        SteerComponent steer = steers[i];
-
-        // accumulate forces for steering left or right
-        // 1. target attracts
-        float2 toTarget = normalize(target.target - spatial.pos);
-        float2 toRight = make_float2(-spatial.dir.y, spatial.dir.x);
-        steer.steer = 2 * dot(toRight, toTarget);
-        // 2. mountains repel
-        float2 probePos = spatial.pos + 8 * spatial.dir;
-        for (uint s = peaks->size(), peak_i = 0; peak_i < s; peak_i++)
-        {
-            float3 peak = (*peaks)[peak_i];
-
-            float peakMag = peak.z / 2;
-            float2 toPeak = make_float2(peak.x, peak.y) - probePos;
-            float sqrDist = dot(toPeak, toPeak);
-            if (sqrDist < sqrf(peakMag))
-                toPeak = normalize(toPeak),
-                    steer.steer -= dot(toRight, toPeak) * peakMag / sqrtf(sqrDist);
-        }
-        // 3. evade other tanks
-        ActorList& nearby = Game::grid.FindNearbyTanks(spatial.pos, i);
-        for (int nearby_i = 0; nearby_i < nearby.count; nearby_i++)
-        {
-            uint tank_id = nearby.tank[nearby_i];
-            float2 toActor = spatials[tank_id].pos - spatial.pos;
-            float sqrDist = dot(toActor, toActor);
-            if (sqrDist < 400 && dot(toActor, spatial.dir) > 0.35f)
-            {
-                steer.steer -= (400 - sqrDist) * 0.02f * dot(toActor, toRight) > 0 ? 1 : -1;
-                break;
-            }
-        }
-
-        VisualComponent visual = visuals[i];
-        // adjust heading and move
-        spatial.velocity = make_float2(0.5f);
-        if (steer.steer < -0.2f)
-            visual.frame = (visual.frame + 255 /* i.e. -1 */) & 255, spatial.dir = directions[
-                visual.frame], spatial.velocity = make_float2(0.35f);
-        else if (steer.steer > 0.2f)
-            visual.frame = (visual.frame + 1) & 255, spatial.dir = directions[visual.frame],
-                make_float2(0.35f);
-        else
-        {
-            // draw tank tracks, only when not turning
-            float2 perp(-spatial.dir.y, spatial.dir.x);
-            float2 trackPos1 = spatial.pos - 9 * spatial.dir + 4.5f * perp;
-            float2 trackPos2 = spatial.pos - 9 * spatial.dir - 5.5f * perp;
-            Map::bitmap->BlendBilerp(trackPos1.x, trackPos1.y, 0, 12);
-            Map::bitmap->BlendBilerp(trackPos2.x, trackPos2.y, 0, 12);
-        }
-        spatial.pos += spatial.dir * spatial.velocity;
     }
 }
 
@@ -221,19 +155,9 @@ void Templ8::TanksSystem::Draw()
 {
 }
 
-Tank Templ8::TanksSystem::GetTank(const uint i) const
-{
-    return Tank(
-        &spatials[i],
-        &visuals[i],
-        &targets[i],
-        &attacks[i]
-    );
-}
-
 void Templ8::TanksSystem::SpawnParticle(const uint i)
 {
-    this->particles_system->SpawnParticleExplosion(visuals[i], spatials[i]);
+    this->particles_system.SpawnParticleExplosion(visuals[i], spatials[i]);
 }
 
 void Templ8::TanksSystem::SpawnBullet(const uint i)
@@ -242,7 +166,7 @@ void Templ8::TanksSystem::SpawnBullet(const uint i)
     const AttackComponent attack = attacks[i];
     const VisualComponent visual = visuals[i];
 
-    bullets_system->SpawnBullet(spatial, attack.army, visual.frame);
+    bullets_system.SpawnBullet(spatial, attack.army, visual.frame);
 }
 
 
@@ -253,5 +177,4 @@ void Templ8::TanksSystem::DespawnTank(const uint i)
     vector_swap_and_delete(&targets, i);
     vector_swap_and_delete(&attacks, i);
     vector_swap_and_delete(&collisions, i);
-    vector_swap_and_delete(&steers, i);
 }

@@ -8,7 +8,7 @@ namespace Tmpl8
 
 struct ActorList 
 { 
-	uint tank[CELLCAPACITY];
+	Tank* tank[CELLCAPACITY]; 
 	int count = 0; 
 };
 
@@ -17,9 +17,9 @@ class Grid
 public:
 	Grid() = default;
 	void Clear();
-	void Populate(const vector<SpatialComponent>& tanks);
-	ActorList& FindNearbyTanks( float2 position, uint tank_id = 0 );
-private:
+	void Populate( const vector<Actor*>& actors );
+	ActorList& FindNearbyTanks( Tank* aTank );
+	ActorList& FindNearbyTanks( float2 position, Tank* tank = 0 );
 	ActorList cell[GRIDSIZE * GRIDSIZE];
 	ActorList answer; // we'll use this to return a list of nearby actors
 };
