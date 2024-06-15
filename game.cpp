@@ -152,6 +152,7 @@ void Game::Tick(float deltaTime)
         {
             assert(next_tank1 < SPRITE_SOA_SIZE);
             tank1_poss[next_tank1] = actorPool[i]->pos;
+            tank1_frames[next_tank1] = actorPool[i]->frame;
             next_tank1++;
             continue;
         }
@@ -159,14 +160,15 @@ void Game::Tick(float deltaTime)
         {
             assert(next_tank2 < SPRITE_SOA_SIZE);
             tank2_poss[next_tank2] = actorPool[i]->pos;
+            tank2_frames[next_tank2] = actorPool[i]->frame;
             next_tank2++;
             continue;
         }
         actorPool[i]->Draw();
     }
 
-    DrawSprite(*tank1, tank1_poss, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss);
-    DrawSprite(*tank2, tank2_poss, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss);
+    DrawSprite(*tank1, tank1_poss, tank1_frames, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss);
+    DrawSprite(*tank2, tank2_poss, tank2_frames, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
@@ -179,7 +181,7 @@ void Game::Tick(float deltaTime)
     printf("frame time: %5.2fms\n", frameTimeAvg);
 }
 
-void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
+void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
 {
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
@@ -268,7 +270,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target, u
 
     const uint stride = s.frameCount * s.frameSize;
 
-    // TODO: frameSize is hardcoded for the tank1 sprite.
+    // TODO: frameSize is hardcoded for the tank sprites.
     uint p0ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
     uint p1ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
     uint p2ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
@@ -278,26 +280,25 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target, u
     {
         for (int v = 0; v < s.frameSize - 1; v++)
         {
-            // TODO: frame is hardcoded
-            uint* src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p0ss[i][u] = ScaleColor(src[0], interpol_weight_0s[i]);
             }
 
-            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p1ss[i][u] = ScaleColor(src[1], interpol_weight_1s[i]);
             }
 
-            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p2ss[i][u] = ScaleColor(src[stride], interpol_weight_2s[i]);
             }
 
-            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p3ss[i][u] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
