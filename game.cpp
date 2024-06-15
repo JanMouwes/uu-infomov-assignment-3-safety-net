@@ -124,8 +124,8 @@ void Game::Tick(float deltaTime)
     // update and render actors
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
-    RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss);
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss);
+    RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss);
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
     {
         if (actorPool[i]->GetType() == Actor::TANK) continue;
@@ -321,7 +321,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
 
 void Game::RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
 {
-    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    for (int i = SPRITE_SOA_SIZE - 1; i >= 0; i--)
     {
         // use the stored pixels to restore the rectangle affected by the sprite.
         // note: sprites must be removed in reverse order to guarantee correct removal.
