@@ -155,6 +155,13 @@ void Sprite::ScaleAlpha(uint scale)
 
 void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
 {
+    int frameSize = sprite->frameSize;
+    assert (1024 < frameSize);
+    uint p0s[1024];
+    uint p1s[1024];
+    uint p2s[1024];
+    uint p3s[1024];
+    uint pixs[1024];
     // save the area of target that we are about to overwrite
     if (!backup) backup = new uint[sqr(sprite->frameSize + 1)];
     const int2 intPos = make_int2(pos);
@@ -214,15 +221,38 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
         {
             // fallback
             uint* src = sprite->pixels + frame * sprite->frameSize + v * stride;
-            for (int u = 0; u < sprite->frameSize - 1; u++, src++, dst++)
+            for (int u = 0; u < frameSize - 1; u++, src++)
             {
-                const uint p0 = ScaleColor(src[0], interpol_weight_0);
-                const uint p1 = ScaleColor(src[1], interpol_weight_1);
-                const uint p2 = ScaleColor(src[stride], interpol_weight_2);
-                const uint p3 = ScaleColor(src[stride + 1], interpol_weight_3);
-                const uint pix = p0 + p1 + p2 + p3;
-                const uint alpha = pix >> 24;
-                if (alpha) *dst = ScaleColor(pix, alpha) + ScaleColor(*dst, 255 - alpha);
+                p0s[u] = ScaleColor(src[0], interpol_weight_0);
+            }
+
+            src = sprite->pixels + frame * sprite->frameSize + v * stride;
+            for (int u = 0; u < frameSize - 1; u++, src++)
+            {
+                p1s[u] = ScaleColor(src[1], interpol_weight_1);
+            }
+
+            src = sprite->pixels + frame * frameSize + v * stride;
+            for (int u = 0; u < sprite->frameSize - 1; u++, src++)
+            {
+                p2s[u] = ScaleColor(src[stride], interpol_weight_2);
+            }
+
+            src = sprite->pixels + frame * frameSize + v * stride;
+            for (int u = 0; u < sprite->frameSize - 1; u++, src++)
+            {
+                p3s[u] = ScaleColor(src[stride + 1], interpol_weight_3);
+            }
+
+            for (int u = 0; u < frameSize - 1; u++)
+            {
+                pixs[u] = p0s[u] + p1s[u] + p2s[u] + p3s[u];
+            }
+            
+            for (int u = 0; u < frameSize - 1; u++, dst++)
+            {
+                uint alpha = pixs[u] >> 24;
+                if (alpha) *dst = ScaleColor(pixs[u], alpha) + ScaleColor(*dst, 255 - alpha);
             }
         }
     }
