@@ -221,6 +221,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
 
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         for (int v = 0; v < s.frameSize; v++)
             memcpy(backups[i] + v * s.frameSize,
                    target->pixels + x1s[i] + (y1s[i] + v) * target->width,
@@ -229,42 +230,49 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
 
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         last_poss[i] = make_int2(x1s[i], y1s[i]);
     }
     
     uint frac_xs[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
     }
 
     uint frac_ys[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
     }
 
     uint interpol_weight_0s[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
     }
 
     uint interpol_weight_1s[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
     }
 
     uint interpol_weight_2s[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
     }
 
     uint interpol_weight_3s[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
     }
 
@@ -278,6 +286,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
     uint pixss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
+        if (last_targets[i] == 0) continue;
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
