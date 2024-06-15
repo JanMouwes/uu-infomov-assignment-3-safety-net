@@ -1,5 +1,7 @@
 #pragma once
 
+#define SPRITE_SOA_SIZE 1
+
 namespace Tmpl8
 {
     class Game : public TheApp
@@ -38,6 +40,11 @@ namespace Tmpl8
         Sprite *tank1, *tank2; // tank sprites
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
+
+        Tank* tank1s[464];
+        uint* tank1_backups[SPRITE_SOA_SIZE];
+        void DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target);
+        
         // static data, for global access
         static inline Map map; // the map
         static inline vector<Actor*> actorPool; // actor pool

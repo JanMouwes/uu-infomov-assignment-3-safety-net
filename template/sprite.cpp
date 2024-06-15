@@ -156,7 +156,7 @@ void Sprite::ScaleAlpha(uint scale)
 void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
 {
     int frameSize = sprite->frameSize;
-    assert (1024 < frameSize);
+    assert (frameSize < 1024);
     uint p0s[1024];
     uint p1s[1024];
     uint p2s[1024];

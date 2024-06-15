@@ -1,6 +1,9 @@
 #include "precomp.h"
 #include "game.h"
 
+#define TANK1_FRAME_SIZE 36
+#define TANK1_FRAME 1
+
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
@@ -135,7 +138,24 @@ void Game::Tick(float deltaTime)
             i--;
         }
     coolDown++;
-    for (int s = (int)actorPool.size(), i = 0; i < s; i++) actorPool[i]->Draw();
+    // uint next_tank1 = 0;
+    for (int s = (int)actorPool.size(), i = 0; i < s; i++)
+    {
+        /*
+        if (actorPool[i]->GetType() == Actor::TANK &&((Tank*)actorPool[i])->army == 0)
+        {
+            assert(next_tank1 < 464);
+            tank1s[next_tank1] = (Tank*)actorPool[i];
+            next_tank1++;
+            continue;
+        }
+        */
+        actorPool[i]->Draw();
+    }
+
+    float2 poss[SPRITE_SOA_SIZE] = { make_float2(150, 150)};
+    DrawSprite(*tank1, poss, screen);
+
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
@@ -145,4 +165,148 @@ void Game::Tick(float deltaTime)
     static float frameTimeAvg = 10.0f; // estimate
     frameTimeAvg = 0.95f * frameTimeAvg + 0.05f * t.elapsed() * 1000;
     printf("frame time: %5.2fms\n", frameTimeAvg);
+}
+
+// to draw an instance of a sprite:
+// - backup (used by Remove())
+// - intPos
+// - x1, x2, y1, y2 (form the bounding box of where to draw the sprite based on intPos and sprite frameSize)
+// - the sprite
+// - the target
+// - frac_x and frac_y
+// - the interpol_weights_0 to 3
+// the stride
+
+void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
+{
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        if (!tank1_backups[i]) tank1_backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
+    }
+
+    int2 intPoss[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        intPoss[i] = make_int2(poss[i]);
+    }
+
+    int x1s[SPRITE_SOA_SIZE], x2s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        x1s[i] = intPoss[i].x - s.frameSize / 2;
+        x2s[i] = x1s[i] + s.frameSize;
+    }
+    int y1s[SPRITE_SOA_SIZE], y2s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        y1s[i] = intPoss[i].y - s.frameSize / 2;
+        y2s[i] = y1s[i] + s.frameSize;
+    }
+
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        for (int v = 0; v < s.frameSize; v++)
+            memcpy(tank1_backups[i] + v * s.frameSize,
+                   target->pixels + x1s[i] + (y1s[i] + v) * target->width,
+                   s.frameSize * 4);
+    }
+
+    int2 lastPoss[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        lastPoss[i] = make_int2(x1s[i], y1s[i]);
+    }
+
+    Surface* lastTarget[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        lastTarget[i] = target;
+    }
+
+    uint frac_xs[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
+    }
+
+    uint frac_ys[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
+    }
+
+    uint interpol_weight_0s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
+    }
+
+    uint interpol_weight_1s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
+    }
+
+    uint interpol_weight_2s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
+    }
+
+    uint interpol_weight_3s[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
+    }
+
+    const uint stride = s.frameCount * s.frameSize;
+
+    // TODO: frameSize is hardcoded for the tank1 sprite.
+    uint p0ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
+    uint p1ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
+    uint p2ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
+    uint p3ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
+    uint pixss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+    {
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            // TODO: frame is hardcoded
+            uint* src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            for (int u = 0; u < s.frameSize - 1; u++, src++)
+            {
+                p0ss[i][u] = ScaleColor(src[0], interpol_weight_0s[i]);
+            }
+
+            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            for (int u = 0; u < s.frameSize - 1; u++, src++)
+            {
+                p1ss[i][u] = ScaleColor(src[1], interpol_weight_1s[i]);
+            }
+
+            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            for (int u = 0; u < s.frameSize - 1; u++, src++)
+            {
+                p2ss[i][u] = ScaleColor(src[stride], interpol_weight_2s[i]);
+            }
+
+            src = s.pixels + TANK1_FRAME * s.frameSize + v * stride;
+            for (int u = 0; u < s.frameSize - 1; u++, src++)
+            {
+                p3ss[i][u] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
+            }
+
+            for (int u = 0; u < s.frameSize - 1; u++)
+            {
+                pixss[i][u] = p0ss[i][u] + p1ss[i][u] + p2ss[i][u] + p3ss[i][u];
+            }
+            
+            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
+            for (int u = 0; u < s.frameSize - 1; u++, dst++)
+            {
+                uint alpha = pixss[i][u] >> 24;
+                if (alpha) *dst = ScaleColor(pixss[i][u], alpha) + ScaleColor(*dst, 255 - alpha);
+            }
+        }
+    }
 }
