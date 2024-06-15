@@ -1,6 +1,7 @@
 #pragma once
 
-#define SPRITE_SOA_SIZE 1
+// Setting this too high causes a stack-overflow in Game::DrawSprite
+#define SPRITE_SOA_SIZE 1000
 
 namespace Tmpl8
 {

@@ -153,7 +153,9 @@ void Game::Tick(float deltaTime)
         actorPool[i]->Draw();
     }
 
-    float2 poss[SPRITE_SOA_SIZE] = { make_float2(150, 150)};
+    float2 poss[SPRITE_SOA_SIZE];
+    for (int i = 0; i < SPRITE_SOA_SIZE; i++)
+        poss[i] = make_float2(150, 150);
     DrawSprite(*tank1, poss, screen);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
@@ -166,16 +168,6 @@ void Game::Tick(float deltaTime)
     frameTimeAvg = 0.95f * frameTimeAvg + 0.05f * t.elapsed() * 1000;
     printf("frame time: %5.2fms\n", frameTimeAvg);
 }
-
-// to draw an instance of a sprite:
-// - backup (used by Remove())
-// - intPos
-// - x1, x2, y1, y2 (form the bounding box of where to draw the sprite based on intPos and sprite frameSize)
-// - the sprite
-// - the target
-// - frac_x and frac_y
-// - the interpol_weights_0 to 3
-// the stride
 
 void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
 {
