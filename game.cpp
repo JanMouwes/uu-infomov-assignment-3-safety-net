@@ -128,6 +128,7 @@ void Game::Tick(float deltaTime)
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss);
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
     {
+        if (actorPool[i]->GetType() == Actor::TANK) continue;
         actorPool[i]->Remove();
     }
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
@@ -153,6 +154,7 @@ void Game::Tick(float deltaTime)
             tank1_poss[next_tank1] = actorPool[i]->pos;
             tank1_frames[next_tank1] = actorPool[i]->frame;
             next_tank1++;
+            continue;
         }
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 1)
         {
@@ -160,6 +162,7 @@ void Game::Tick(float deltaTime)
             tank2_poss[next_tank2] = actorPool[i]->pos;
             tank2_frames[next_tank2] = actorPool[i]->frame;
             next_tank2++;
+            continue;
         }
         actorPool[i]->Draw();
     }
