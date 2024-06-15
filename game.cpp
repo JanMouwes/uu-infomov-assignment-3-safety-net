@@ -125,7 +125,7 @@ void Game::Tick(float deltaTime)
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
-    RemoveSprite(*tank1);
+    RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss);
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())
@@ -140,6 +140,7 @@ void Game::Tick(float deltaTime)
         }
     coolDown++;
     uint next_tank1 = 0;
+    uint next_tank2 = 0;
     for (int s = (int)actorPool.size(), i = 0; i < s; i++)
     {
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 0)
@@ -152,7 +153,7 @@ void Game::Tick(float deltaTime)
         actorPool[i]->Draw();
     }
 
-    DrawSprite(*tank1, tank1_poss, map.bitmap);
+    DrawSprite(*tank1, tank1_poss, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
@@ -165,11 +166,11 @@ void Game::Tick(float deltaTime)
     printf("frame time: %5.2fms\n", frameTimeAvg);
 }
 
-void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
+void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
 {
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
-        if (!tank1_backups[i]) tank1_backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
+        if (!backups[i]) backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
     }
 
     int2 intPoss[SPRITE_SOA_SIZE];
@@ -195,11 +196,11 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
     {
         if (x1s[i] < 0 || y1s[i] < 0 || x2s[i] >= target->width || y2s[i] >= target->height)
         {
-            tank1_last_targets[i] = 0;
+            last_targets[i] = 0;
         }
         else
         {
-            tank1_last_targets[i] = target;
+            last_targets[i] = target;
         }
     }
 
@@ -213,7 +214,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
 
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
-        tank1_last_poss[i] = make_int2(x1s[i], y1s[i]);
+        last_poss[i] = make_int2(x1s[i], y1s[i]);
     }
     
     uint frac_xs[SPRITE_SOA_SIZE];
@@ -304,17 +305,17 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target)
     }
 }
 
-void Game::RemoveSprite(Sprite s)
+void Game::RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
 {
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
         // use the stored pixels to restore the rectangle affected by the sprite.
         // note: sprites must be removed in reverse order to guarantee correct removal.
-        if (tank1_last_targets[i])
+        if (last_targets[i])
             for (int v = 0; v < s.frameSize; v++)
             {
-                memcpy(tank1_last_targets[i]->pixels + tank1_last_poss[i].x + (tank1_last_poss[i].y + v) * tank1_last_targets[i]->width,
-                       tank1_backups[i] + v * s.frameSize, s.frameSize * 4);
+                memcpy(last_targets[i]->pixels + last_poss[i].x + (tank1_last_poss[i].y + v) * last_targets[i]->width,
+                       backups[i] + v * s.frameSize, s.frameSize * 4);
             }
     }
 }
