@@ -32,6 +32,21 @@ namespace Tmpl8
         void KeyDown(int key)
         {
             /* implement if you want to handle keys */
+            if (key == GLFW_KEY_C)
+            {
+                int2 cursorPos = map.ScreenToMap(mousePos);
+                printf("cursorPos: (%d, %d)\n", cursorPos.x, cursorPos.y);
+            }
+            
+            if (key == GLFW_KEY_F)
+            {
+                debug_print_frame_time = !debug_print_frame_time;
+            }
+
+            if (key == GLFW_KEY_P)
+            {
+                is_tick_paused = !is_tick_paused;
+            }
         }
 
         // data members
@@ -58,6 +73,8 @@ namespace Tmpl8
         void RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE]);
         
         // static data, for global access
+        static inline bool debug_print_frame_time;
+        static inline bool is_tick_paused;
         static inline Map map; // the map
         static inline vector<Actor*> actorPool; // actor pool
         static inline vector<float3> peaks; // mountain peaks to evade

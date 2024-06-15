@@ -131,19 +131,22 @@ void Game::Tick(float deltaTime)
         if (actorPool[i]->GetType() == Actor::TANK) continue;
         actorPool[i]->Remove();
     }
-    for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
-    for (int i = 0; i < (int)actorPool.size(); i++)
-        if (!actorPool[i]->Tick())
-        {
-            // actor got deleted, replace by last in list
-            Actor* lastActor = actorPool.back();
-            Actor* toDelete = actorPool[i];
-            actorPool.pop_back();
-            if (lastActor != toDelete) actorPool[i] = lastActor;
-            delete toDelete;
-            i--;
-        }
-    coolDown++;
+    if (!is_tick_paused)
+    {
+        for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
+        for (int i = 0; i < (int)actorPool.size(); i++)
+            if (!actorPool[i]->Tick())
+            {
+                // actor got deleted, replace by last in list
+                Actor* lastActor = actorPool.back();
+                Actor* toDelete = actorPool[i];
+                actorPool.pop_back();
+                if (lastActor != toDelete) actorPool[i] = lastActor;
+                delete toDelete;
+                i--;
+            }
+        coolDown++;
+    }
     uint next_tank1 = 0;
     uint next_tank2 = 0;
     for (int s = (int)actorPool.size(), i = 0; i < s; i++)
@@ -178,7 +181,10 @@ void Game::Tick(float deltaTime)
     // report frame time
     static float frameTimeAvg = 10.0f; // estimate
     frameTimeAvg = 0.95f * frameTimeAvg + 0.05f * t.elapsed() * 1000;
-    printf("frame time: %5.2fms\n", frameTimeAvg);
+    if (debug_print_frame_time)
+    {
+        printf("frame time: %5.2fms\n", frameTimeAvg);
+    }
 }
 
 void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE])
