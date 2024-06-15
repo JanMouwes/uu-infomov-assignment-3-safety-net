@@ -1,7 +1,7 @@
 #pragma once
 
 // Setting this too high causes a stack-overflow in Game::DrawSprite
-#define SPRITE_SOA_SIZE 1000
+#define SPRITE_SOA_SIZE 464
 
 namespace Tmpl8
 {
@@ -42,9 +42,12 @@ namespace Tmpl8
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
 
-        Tank* tank1s[464];
+        float2 tank1_poss[SPRITE_SOA_SIZE];
         uint* tank1_backups[SPRITE_SOA_SIZE];
+        Surface* tank1_last_targets[SPRITE_SOA_SIZE];
+        int2 tank1_last_poss[SPRITE_SOA_SIZE];
         void DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target);
+        void RemoveSprite(Sprite s);
         
         // static data, for global access
         static inline Map map; // the map
