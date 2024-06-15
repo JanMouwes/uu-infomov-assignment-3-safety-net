@@ -155,8 +155,8 @@ void Game::Tick(float deltaTime)
 
     float2 poss[SPRITE_SOA_SIZE];
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
-        poss[i] = make_float2(150, 150);
-    DrawSprite(*tank1, poss, screen);
+        poss[i] = make_float2(500, 2550);
+    DrawSprite(*tank1, poss, map.bitmap);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
