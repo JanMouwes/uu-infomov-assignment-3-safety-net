@@ -124,8 +124,13 @@ void Game::Tick(float deltaTime)
     // update and render actors
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
-    for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--) actorPool[i]->Remove();
+    for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
+    {
+        if (actorPool[i]->GetType() == Actor::TANK) continue;
+        actorPool[i]->Remove();
+    }
     RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss);
+    RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss);
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
     for (int i = 0; i < (int)actorPool.size(); i++)
         if (!actorPool[i]->Tick())
@@ -150,10 +155,18 @@ void Game::Tick(float deltaTime)
             next_tank1++;
             continue;
         }
+        if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 1)
+        {
+            assert(next_tank2 < SPRITE_SOA_SIZE);
+            tank2_poss[next_tank2] = actorPool[i]->pos;
+            next_tank2++;
+            continue;
+        }
         actorPool[i]->Draw();
     }
 
     DrawSprite(*tank1, tank1_poss, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss);
+    DrawSprite(*tank2, tank2_poss, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
@@ -207,7 +220,7 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], Surface* target, u
     for (int i = 0; i < SPRITE_SOA_SIZE; i++)
     {
         for (int v = 0; v < s.frameSize; v++)
-            memcpy(tank1_backups[i] + v * s.frameSize,
+            memcpy(backups[i] + v * s.frameSize,
                    target->pixels + x1s[i] + (y1s[i] + v) * target->width,
                    s.frameSize * 4);
     }
@@ -314,7 +327,7 @@ void Game::RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_
         if (last_targets[i])
             for (int v = 0; v < s.frameSize; v++)
             {
-                memcpy(last_targets[i]->pixels + last_poss[i].x + (tank1_last_poss[i].y + v) * last_targets[i]->width,
+                memcpy(last_targets[i]->pixels + last_poss[i].x + (last_poss[i].y + v) * last_targets[i]->width,
                        backups[i] + v * s.frameSize, s.frameSize * 4);
             }
     }
