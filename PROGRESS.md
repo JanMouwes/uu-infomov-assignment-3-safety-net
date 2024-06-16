@@ -30,7 +30,7 @@ dst[u] = ScaleColor(pix_colour_argb, alpha) + ScaleColor(dst[u], 255 - alpha);
 
 ### 2024/06/15
 
-### SpriteInstance::Draw
+#### SpriteInstance::Draw
 
 AMD uProf reports two major hotspots:
 ```
@@ -120,7 +120,24 @@ Line,Source,CPU_TIME(s)
 243,"p3s[u] = ScaleColor(src[stride + 1], interpol_weight_3);",3.28%
 254,"if (alpha) *dst = ScaleColor(pixs[u], alpha) + ScaleColor(*dst, 255 - alpha);",3.34%
 ```
+
 Particles (the sand/tumbleweed), bullets, explosions, and flashes all use SpriteInstance::Draw.
 Since the profiling is done _before_ the tanks start shooting, the time is spent on drawing the sand.
+
+Moving to a SoA style layout for sand's tick does not gain much in performance.
+However it does mean that `57%` of CPU Time is spent in `Game::DrawSprite`.
+
+#### Back to `Game::DrawSprite`
+
+Specifically:
+```
+Line,Source,CPU_TIME(s)
+437,"void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total)",12.21%
+413,"p2ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[stride], interpol_weight_2s[i]);",8.69%
+407,"p1ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[1], interpol_weight_1s[i]);",7.41%
+```
+
+It is hard to split up the loop that loops over all of these statements, because it lacks the dimension that `v` introduces.
+So, all p0ss, p1ss, p2ss, and pixss have an added dimensionality of v.
 
 ## Final performance

@@ -398,37 +398,37 @@ void Game::DrawSprite(
             uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p0ss[i * (s.frameSize - 1) + u] = ScaleColor(src[0], interpol_weight_0s[i]);
+                p0ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[0], interpol_weight_0s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p1ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[1], interpol_weight_1s[i]);
+                p1ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[1], interpol_weight_1s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p2ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[stride], interpol_weight_2s[i]);
+                p2ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride], interpol_weight_2s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p3ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
+                p3ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
             }
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
-                pixss[i *  (s.frameSize - 1) + u] = p0ss[i * (s.frameSize - 1) + u] + p1ss[i *  (s.frameSize - 1) + u] + p2ss[i *  (s.frameSize - 1) + u] + p3ss[i *  (s.frameSize - 1) + u];
+                pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)] + p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];
             }
-
+            
             uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
             for (int u = 0; u < s.frameSize - 1; u++, dst++)
             {
-                uint alpha = pixss[i *  (s.frameSize - 1) + u] >> 24;
-                if (alpha) *dst = ScaleColor(pixss[i *  (s.frameSize - 1) + u], alpha) + ScaleColor(*dst, 255 - alpha);
+                uint alpha = pixss[To1D(u, v, i, s.frameSize - 1)] >> 24;
+                if (alpha) *dst = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(*dst, 255 - alpha);
             }
         }
     }
