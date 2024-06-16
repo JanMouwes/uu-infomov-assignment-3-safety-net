@@ -1,11 +1,19 @@
 #include "precomp.h"
 #include "game.h"
 
+static Kernel *processBushes;
+static Buffer *bush_poss, *bush_fracs;
+
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
+    Kernel::InitCL();
+    processBushes = new Kernel("cl/program.cl", "processBushes");
+    bush_poss = new Buffer(MAX_SAND * 2 * sizeof(float));
+    bush_fracs = new Buffer(MAX_SAND * 2 * sizeof(float));
+    
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -52,6 +60,9 @@ void Game::Init()
             if ((p & 0xffff) == 0) peaks.push_back(make_float3(make_int3(x * 8, y * 8, (p >> 16) & 255)));
         }
     // add sandstorm
+
+    bush_poss->CopyFromDevice(); // Forces creation of bush_poss
+    float *fb_poss = (float*)bush_poss->GetHostPtr();
     for (int i = 0; i < MAX_SAND; i++)
     {
         int x = RandomUInt() % map.bitmap->width;
@@ -77,13 +88,16 @@ void Game::Init()
         }
         else
         {
-            assert(next_sand2 < THIRD_MAX_SAND);
-            sand2_poss[next_sand2] = make_float2(x, y);
+            assert(next_sand2 < THIRD_MAX_SAND); sand2_poss[next_sand2] = make_float2(x, y);
             sand2_dirs[next_sand2] = make_float2(-1 - RandomFloat() * 4, 0);
             sand2_colors[next_sand2] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand2_frame_changes[next_sand2] = d;
             next_sand2++;
         }
+
+        // fb is MAX_SAND * 2 floats
+        fb_poss[i * 2 + 0] = x;
+        fb_poss[i * 2 + 1] = y;
     }
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
@@ -312,6 +326,7 @@ void Game::DrawSprite(
 
     for (uint i = 0; i < total; i++)
     {
+        // make_int2 just casts the component floats to integers
         int_poss[i] = make_int2(poss[i]);
     }
 
