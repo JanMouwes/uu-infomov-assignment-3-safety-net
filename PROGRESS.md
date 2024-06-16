@@ -184,4 +184,21 @@ Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB
 
 Total IBS_DC_MISS_LAT ~= 6.5k vs. ~52k
 
+AMD uProf now shows cache contention hotspot:
+```
+Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB_LOCAL_CACHE_MODIFIED,IBS_NB_REMOTE_CACHE_MODIFIED,IBS_STORE,IBS_STORE_DC_MISS,IBS_NB_LOCAL_DRAM,IBS_NB_REMOTE_DRAM,IBS_NB_LOCAL_CACHE_OWNED,IBS_NB_REMOTE_CACHE_OWNED,IBS_NB_LOCAL_CACHE_MISS,IBS_LOAD_DC_L2_HIT
+432,"if (alpha) *dst = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(*dst, 255 - alpha);",2562,1320,184810,157,157,,1242,534,413,,6,,413,744
+```
+
+Splitting either side of the addition into their own for-loops shows that:
+```
+Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB_LOCAL_CACHE_MODIFIED,IBS_NB_REMOTE_CACHE_MODIFIED,IBS_STORE,IBS_STORE_DC_MISS,IBS_NB_LOCAL_DRAM,IBS_NB_REMOTE_DRAM,IBS_NB_LOCAL_CACHE_OWNED,IBS_NB_REMOTE_CACHE_OWNED,IBS_NB_LOCAL_CACHE_MISS,IBS_LOAD_DC_L2_HIT
+434,"*dst = ScaleColor(*dst, 255 - alpha);",941,485,104187,56,56,,456,242,228,,6,,228,195
+452,"*dst += ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha);",450,450,41502,197,197,,450,290,62,,,,62,191
+```
+Doing so also messes up the colors when two tanks overlap.
+At this point I can only reason that it is a long data-dependency on pixs through p0ss, p1ss, p2ss, p3ss  interpol weights?
+
+Using the scaled pixels code we pragmad out (without really optimizing for data access other than the outer loop)  yields FPS 30 and average frame time 1ms
+
 ## Final performance

@@ -61,8 +61,8 @@ void Game::Init()
         {
             assert(next_sand0 < THIRD_MAX_SAND);
             sand0_poss[next_sand0] = make_float2(x, y);
-            sand0_dirs[next_sand0] = make_float2( -1 - RandomFloat() * 4, 0 );
-            sand0_colors[next_sand0] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand0_dirs[next_sand0] = make_float2(-1 - RandomFloat() * 4, 0);
+            sand0_colors[next_sand0] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand0_frame_changes[next_sand0] = d;
             next_sand0++;
         }
@@ -70,18 +70,17 @@ void Game::Init()
         {
             assert(next_sand1 < THIRD_MAX_SAND);
             sand1_poss[next_sand1] = make_float2(x, y);
-            sand1_dirs[next_sand1] = make_float2( -1 - RandomFloat() * 4, 0 );
-            sand1_colors[next_sand1] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand1_dirs[next_sand1] = make_float2(-1 - RandomFloat() * 4, 0);
+            sand1_colors[next_sand1] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand1_frame_changes[next_sand1] = d;
             next_sand1++;
         }
         else
         {
-            
             assert(next_sand2 < THIRD_MAX_SAND);
             sand2_poss[next_sand2] = make_float2(x, y);
-            sand2_dirs[next_sand2] = make_float2( -1 - RandomFloat() * 4, 0 );
-            sand2_colors[next_sand2] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand2_dirs[next_sand2] = make_float2(-1 - RandomFloat() * 4, 0);
+            sand2_colors[next_sand2] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand2_frame_changes[next_sand2] = d;
             next_sand2++;
         }
@@ -212,7 +211,7 @@ void Game::Tick(float deltaTime)
         tank1_backups,
         map.bitmap,
         next_tank1
-        );
+    );
     DrawSprite(
         *tank2,
         tank2_poss,
@@ -302,8 +301,10 @@ void Game::DrawSprite(
     uint** backups,
     Surface* target,
     uint total
-    )
+)
 {
+    const uint stride = s.frameCount * s.frameSize;
+
     for (uint i = 0; i < total; i++)
     {
         if (!backups[i]) backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
@@ -387,9 +388,7 @@ void Game::DrawSprite(
         if (last_targets[i] == 0) continue;
         interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
     }
-
-    const uint stride = s.frameCount * s.frameSize;
-
+#if 0
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -433,7 +432,44 @@ void Game::DrawSprite(
             }
         }
     }
+#else
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            const uint row_origin = frames[i] * s.frameSize + v * stride;
+            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
+
+            // get lookup tables
+            const uint* src0 = s.scaledPixels[interpol_weight_0s[i]] + row_origin;
+            const uint* src1 = s.scaledPixels[interpol_weight_1s[i]] + row_origin;
+            const uint* src2 = s.scaledPixels[interpol_weight_2s[i]] + row_origin;
+            const uint* src3 = s.scaledPixels[interpol_weight_3s[i]] + row_origin;
+
+            // left-to-right
+            for (int u = 0; u < s.frameSize - 1; u++)
+            {
+                // const uint p0 = src0[u];
+                // p0ss[To1D(u, v, i, s.frameSize - 1)] = src0[u];
+                // const uint p1 = src1[u + 1];
+                // p1ss[To1D(u, v, i, s.frameSize - 1)] = src1[u + 1];
+                // const uint p2 = src2[u + stride];
+                // p2ss[To1D(u, v, i, s.frameSize - 1)] = src2[u + stride];
+                // const uint p3 = src3[u + stride + 1];
+                // p3ss[To1D(u, v, i, s.frameSize - 1)] = src3[u + stride + 1];
+                const uint pix_colour_argb = src0[u] + src1[u + 1] + src2[u + stride] + src3[u + stride + 1];
+                // pixss[To1D(u, v, i, s.frameSize - 1)] = src0[i] + src1[u + 1] + src2[u + stride] + src3[u + stride + 1];
+                const uint alpha = pix_colour_argb >> 24;
+                // const uint alpha = pixss[To1D(u, v, i, s.frameSize - 1)] >> 24;
+                dst[u] = ScaleColor(pix_colour_argb, alpha) + ScaleColor(dst[u], 255 - alpha);
+                // dst[u] = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(dst[u], 255 - alpha);
+            }
+        }
+    }
 }
+#endif
 
 void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total)
 {
