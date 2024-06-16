@@ -108,4 +108,19 @@ Removing:
 ```
 Increases performance at that point to 29ms and 33 FPS.
 
+#### Back to SpriteInstance::Draw
+
+Now the majority of time is spent in `SpriteInstance::Draw` again (25%!).
+Specifically:
+```cpp
+Line,Source,CPU_TIME(s)
+225,"p0s[u] = ScaleColor(src[0], interpol_weight_0);",4.00%
+231,"p1s[u] = ScaleColor(src[1], interpol_weight_1);",3.72%
+237,"p2s[u] = ScaleColor(src[stride], interpol_weight_2);",3.40%
+243,"p3s[u] = ScaleColor(src[stride + 1], interpol_weight_3);",3.28%
+254,"if (alpha) *dst = ScaleColor(pixs[u], alpha) + ScaleColor(*dst, 255 - alpha);",3.34%
+```
+Particles (the sand/tumbleweed), bullets, explosions, and flashes all use SpriteInstance::Draw.
+Since the profiling is done _before_ the tanks start shooting, the time is spent on drawing the sand.
+
 ## Final performance

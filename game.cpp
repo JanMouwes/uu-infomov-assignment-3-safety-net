@@ -1,8 +1,7 @@
 #include "precomp.h"
 #include "game.h"
 
-#define TANK1_FRAME_SIZE 36
-#define TANK1_FRAME 1
+#define MAX_FRAME_SIZE 36
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -10,8 +9,8 @@
 void Game::Init()
 {
     // load tank sprites
-    tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), 36, 256);
-    tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), 36, 256);
+    tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
+    tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     // load bush sprite for dust streams
     bush[0] = new Sprite("assets/bush1.png", make_int2(2, 2), make_int2(31, 31), 10, 256);
     bush[1] = new Sprite("assets/bush2.png", make_int2(2, 2), make_int2(31, 31), 14, 256);
@@ -55,7 +54,7 @@ void Game::Init()
             if ((p & 0xffff) == 0) peaks.push_back(make_float3(make_int3(x * 8, y * 8, (p >> 16) & 255)));
         }
     // add sandstorm
-    for (int i = 0; i < 7500; i++)
+    for (int i = 0; i < MAX_SAND; i++)
     {
         int x = RandomUInt() % map.bitmap->width;
         int y = RandomUInt() % map.bitmap->height;
@@ -153,7 +152,7 @@ void Game::Tick(float deltaTime)
     {
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 0)
         {
-            assert(next_tank1 < SPRITE_SOA_SIZE);
+            assert(next_tank1 < MAX_ARMY_SIZE);
             tank1_poss[next_tank1] = actorPool[i]->pos;
             tank1_frames[next_tank1] = actorPool[i]->frame;
             next_tank1++;
@@ -161,7 +160,7 @@ void Game::Tick(float deltaTime)
         }
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 1)
         {
-            assert(next_tank2 < SPRITE_SOA_SIZE);
+            assert(next_tank2 < MAX_ARMY_SIZE);
             tank2_poss[next_tank2] = actorPool[i]->pos;
             tank2_frames[next_tank2] = actorPool[i]->frame;
             next_tank2++;
@@ -170,8 +169,36 @@ void Game::Tick(float deltaTime)
         actorPool[i]->Draw();
     }
 
-    DrawSprite(*tank1, tank1_poss, tank1_frames, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
-    DrawSprite(*tank2, tank2_poss, tank2_frames, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
+    DrawSprite(
+        *tank1,
+        tank1_poss,
+        tank1_frames,
+        tank1_int_poss,
+        tank1_x1s, tank1_x2s, tank1_y1s, tank1_y2s,
+        tank1_frac_xs, tank1_frac_ys,
+        tank1_interpol_weight_0s, tank1_interpol_weight_1s, tank1_interpol_weight_2s, tank1_interpol_weight_3s,
+        tank1_p0ss, tank1_p1ss, tank1_p2ss, tank1_p3ss, tank1_pixss,
+        tank1_last_targets,
+        tank1_last_poss,
+        tank1_backups,
+        map.bitmap,
+        next_tank1
+        );
+    DrawSprite(
+        *tank2,
+        tank2_poss,
+        tank2_frames,
+        tank2_int_poss,
+        tank2_x1s, tank2_x2s, tank2_y1s, tank2_y2s,
+        tank2_frac_xs, tank2_frac_ys,
+        tank2_interpol_weight_0s, tank2_interpol_weight_1s, tank2_interpol_weight_2s, tank2_interpol_weight_3s,
+        tank2_p0ss, tank2_p1ss, tank2_p2ss, tank2_p3ss, tank2_pixss,
+        tank2_last_targets,
+        tank2_last_poss,
+        tank2_backups,
+        map.bitmap,
+        next_tank2
+    );
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
@@ -187,30 +214,40 @@ void Game::Tick(float deltaTime)
     }
 }
 
-void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE], uint total)
+void Game::DrawSprite(
+    Sprite s,
+    float2* poss,
+    int* frames,
+    int2* int_poss,
+    int* x1s, int* x2s, int* y1s, int* y2s,
+    uint* frac_xs, uint* frac_ys,
+    uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
+    uint p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE],
+    Surface** last_targets,
+    int2* last_poss,
+    uint** backups,
+    Surface* target,
+    uint total
+    )
 {
-    assert(total < SPRITE_SOA_SIZE);
     for (uint i = 0; i < total; i++)
     {
         if (!backups[i]) backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
     }
 
-    int2 intPoss[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
-        intPoss[i] = make_int2(poss[i]);
+        int_poss[i] = make_int2(poss[i]);
     }
 
-    int x1s[SPRITE_SOA_SIZE], x2s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
-        x1s[i] = intPoss[i].x - s.frameSize / 2;
+        x1s[i] = int_poss[i].x - s.frameSize / 2;
         x2s[i] = x1s[i] + s.frameSize;
     }
-    int y1s[SPRITE_SOA_SIZE], y2s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
-        y1s[i] = intPoss[i].y - s.frameSize / 2;
+        y1s[i] = int_poss[i].y - s.frameSize / 2;
         y2s[i] = y1s[i] + s.frameSize;
     }
 
@@ -241,42 +278,36 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
         last_poss[i] = make_int2(x1s[i], y1s[i]);
     }
     
-    uint frac_xs[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
     }
 
-    uint frac_ys[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
     }
 
-    uint interpol_weight_0s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
     }
 
-    uint interpol_weight_1s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
     }
 
-    uint interpol_weight_2s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
     }
 
-    uint interpol_weight_3s[SPRITE_SOA_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -285,12 +316,6 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
 
     const uint stride = s.frameCount * s.frameSize;
 
-    // TODO: frameSize is hardcoded for the tank sprites.
-    uint p0ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
-    uint p1ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
-    uint p2ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
-    uint p3ss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
-    uint pixss[SPRITE_SOA_SIZE][TANK1_FRAME_SIZE];
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -335,9 +360,8 @@ void Game::DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_
     }
 }
 
-void Game::RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE], uint total)
+void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total)
 {
-    assert(total < SPRITE_SOA_SIZE);
     for (int i = total - 1; i >= 0; i--)
     {
         // use the stored pixels to restore the rectangle affected by the sprite.
