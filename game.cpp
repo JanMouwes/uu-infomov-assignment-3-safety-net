@@ -222,7 +222,7 @@ void Game::DrawSprite(
     int* x1s, int* x2s, int* y1s, int* y2s,
     uint* frac_xs, uint* frac_ys,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
-    uint p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE],
+    uint p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
     Surface** last_targets,
     int2* last_poss,
     uint** backups,
