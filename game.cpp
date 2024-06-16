@@ -242,6 +242,8 @@ void Game::Tick(float deltaTime)
         next_tank2
     );
 
+    processBushes->SetArguments(bush_poss, bush_fracs);
+    processBushes->Run(MAX_SAND);
     DrawSprite(
         *bush[0],
         sand0_poss,
