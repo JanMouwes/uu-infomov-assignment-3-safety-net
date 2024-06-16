@@ -84,6 +84,10 @@ Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB
 
 Created a complete SoA style drawing flow for tank1 and tank2 sprites.
 
+### In the meantime
+
+A bunch of trying to do full blown ECS....
+
 ### 06/06/16
 
 #### Map::Draw
@@ -139,5 +143,45 @@ Line,Source,CPU_TIME(s)
 
 It is hard to split up the loop that loops over all of these statements, because it lacks the dimension that `v` introduces.
 So, all p0ss, p1ss, p2ss, and pixss have an added dimensionality of v.
+
+Splitting each of the above statements into their own outer-loops means that FPS hovers around 22-24 FPS and ms stablises to 42ms.
+AMD uProf shows the following hotspots:
+```
+Line,Source,CPU_TIME(s)
+445,"if (alpha) *dst = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(*dst, 255 - alpha);",22.00%
+401,"p0ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[0], interpol_weight_0s[i]);",7.54%
+420,"p2ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride], interpol_weight_2s[i]);",7.34%
+426,"p3ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);",6.18%
+431,"pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)] + p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];",4.42%
+407,"p1ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[1], interpol_weight_1s[i]);",6.28%
+```
+Where `To1D` is defined as
+```cpp 
+inline uint To1D(uint x, uint y, uint z, uint width, uint height)
+{
+    return z * width * height + y * width + x;
+}
+
+inline uint To1D(uint x, uint y, uint z, uint square)
+{
+    return To1D(x, y, z, square, square);
+}
+```
+
+Investigating the cache performance in this area of the program shows that:
+
+```
+Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB_LOCAL_CACHE_MODIFIED,IBS_NB_REMOTE_CACHE_MODIFIED,IBS_STORE,IBS_STORE_DC_MISS,IBS_NB_LOCAL_DRAM,IBS_NB_REMOTE_DRAM,IBS_NB_LOCAL_CACHE_OWNED,IBS_NB_REMOTE_CACHE_OWNED,IBS_NB_LOCAL_CACHE_MISS,IBS_LOAD_DC_L2_HIT
+428,"pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)] + p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];",22910,18347,52072,27,27,,4563,205,144,,,,144,18176
+```
+
+Moving the update of pixss to where the loops where p0ss and p1ss, and p2ss and p3ss are just read improves the cache performance:
+```
+Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB_LOCAL_CACHE_MODIFIED,IBS_NB_REMOTE_CACHE_MODIFIED,IBS_STORE,IBS_STORE_DC_MISS,IBS_NB_LOCAL_DRAM,IBS_NB_REMOTE_DRAM,IBS_NB_LOCAL_CACHE_OWNED,IBS_NB_REMOTE_CACHE_OWNED,IBS_NB_LOCAL_CACHE_MISS,IBS_LOAD_DC_L2_HIT
+418,"pixss[To1D(u, v, i, s.frameSize - 1)] += p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];",8467,8467,2911,2,2,,3709,5,10,,,,10,8455
+403,"pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)];",8314,4723,3599,,,,3591,31,10,,1,,10,4712
+```
+
+Total IBS_DC_MISS_LAT ~= 6.5k vs. ~52k
 
 ## Final performance

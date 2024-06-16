@@ -399,31 +399,32 @@ void Game::DrawSprite(
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p0ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[0], interpol_weight_0s[i]);
-            }
-
-            src = s.pixels + frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++, src++)
-            {
                 p1ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[1], interpol_weight_1s[i]);
+                pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)];
             }
-
-            src = s.pixels + frames[i] * s.frameSize + v * stride;
+        }
+    }
+    
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
                 p2ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride], interpol_weight_2s[i]);
-            }
-
-            src = s.pixels + frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++, src++)
-            {
                 p3ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
+                pixss[To1D(u, v, i, s.frameSize - 1)] += p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];
             }
-
-            for (int u = 0; u < s.frameSize - 1; u++)
-            {
-                pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)] + p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];
-            }
+        }
+    }
             
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
             uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
             for (int u = 0; u < s.frameSize - 1; u++, dst++)
             {
