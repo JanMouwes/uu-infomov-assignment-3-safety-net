@@ -205,7 +205,7 @@ void Game::Tick(float deltaTime)
         tank1_x1s, tank1_x2s, tank1_y1s, tank1_y2s,
         tank1_frac_xs, tank1_frac_ys,
         tank1_interpol_weight_0s, tank1_interpol_weight_1s, tank1_interpol_weight_2s, tank1_interpol_weight_3s,
-        tank1_p0ss, tank1_p1ss, tank1_p2ss, tank1_p3ss, tank1_pixss,
+        tank1_pixss,
         tank1_last_targets,
         tank1_last_poss,
         tank1_backups,
@@ -220,7 +220,7 @@ void Game::Tick(float deltaTime)
         tank2_x1s, tank2_x2s, tank2_y1s, tank2_y2s,
         tank2_frac_xs, tank2_frac_ys,
         tank2_interpol_weight_0s, tank2_interpol_weight_1s, tank2_interpol_weight_2s, tank2_interpol_weight_3s,
-        tank2_p0ss, tank2_p1ss, tank2_p2ss, tank2_p3ss, tank2_pixss,
+        tank2_pixss,
         tank2_last_targets,
         tank2_last_poss,
         tank2_backups,
@@ -236,7 +236,7 @@ void Game::Tick(float deltaTime)
         sand0_x1s, sand0_x2s, sand0_y1s, sand0_y2s,
         sand0_frac_xs, sand0_frac_ys,
         sand0_interpol_weight_0s, sand0_interpol_weight_1s, sand0_interpol_weight_2s, sand0_interpol_weight_3s,
-        sand0_p0ss, sand0_p1ss, sand0_p2ss, sand0_p3ss, sand0_pixss,
+        sand0_pixss,
         sand0_last_targets,
         sand0_last_poss,
         sand0_backups,
@@ -251,7 +251,7 @@ void Game::Tick(float deltaTime)
         sand1_x1s, sand1_x2s, sand1_y1s, sand1_y2s,
         sand1_frac_xs, sand1_frac_ys,
         sand1_interpol_weight_0s, sand1_interpol_weight_1s, sand1_interpol_weight_2s, sand1_interpol_weight_3s,
-        sand1_p0ss, sand1_p1ss, sand1_p2ss, sand1_p3ss, sand1_pixss,
+        sand1_pixss,
         sand1_last_targets,
         sand1_last_poss,
         sand1_backups,
@@ -266,7 +266,7 @@ void Game::Tick(float deltaTime)
         sand2_x1s, sand2_x2s, sand2_y1s, sand2_y2s,
         sand2_frac_xs, sand2_frac_ys,
         sand2_interpol_weight_0s, sand2_interpol_weight_1s, sand2_interpol_weight_2s, sand2_interpol_weight_3s,
-        sand2_p0ss, sand2_p1ss, sand2_p2ss, sand2_p3ss, sand2_pixss,
+        sand2_pixss,
         sand2_last_targets,
         sand2_last_poss,
         sand2_backups,
@@ -295,7 +295,7 @@ void Game::DrawSprite(
     int* x1s, int* x2s, int* y1s, int* y2s,
     uint* frac_xs, uint* frac_ys,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
-    uint* p0ss, uint p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)],
+    uint* pixss,
     Surface** last_targets,
     int2* last_poss,
     uint** backups,
@@ -319,9 +319,6 @@ void Game::DrawSprite(
     {
         x1s[i] = int_poss[i].x - s.frameSize / 2;
         x2s[i] = x1s[i] + s.frameSize;
-    }
-    for (uint i = 0; i < total; i++)
-    {
         y1s[i] = int_poss[i].y - s.frameSize / 2;
         y2s[i] = y1s[i] + s.frameSize;
     }
@@ -335,20 +332,16 @@ void Game::DrawSprite(
         else
         {
             last_targets[i] = target;
+            for (int v = 0; v < s.frameSize; v++)
+            memcpy(backups[i] + v * s.frameSize,
+                   target->pixels + x1s[i] + (y1s[i] + v) * target->width,
+                   s.frameSize * 4);
         }
     }
 
     for (uint i = 0; i < total; i++)
     {
-        if (last_targets[i] == 0) continue;
-        for (int v = 0; v < s.frameSize; v++)
-            memcpy(backups[i] + v * s.frameSize,
-                   target->pixels + x1s[i] + (y1s[i] + v) * target->width,
-                   s.frameSize * 4);
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
+        // last_poss[i] is used by sprite remove
         if (last_targets[i] == 0) continue;
         last_poss[i] = make_int2(x1s[i], y1s[i]);
     }
@@ -357,82 +350,13 @@ void Game::DrawSprite(
     {
         if (last_targets[i] == 0) continue;
         frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
         frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
+        
         interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
         interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
         interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
         interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
     }
-#if 0
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++, src++)
-            {
-                p0ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[0], interpol_weight_0s[i]);
-                p1ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[1], interpol_weight_1s[i]);
-                pixss[To1D(u, v, i, s.frameSize - 1)] = p0ss[To1D(u, v, i, s.frameSize - 1)] + p1ss[To1D(u, v, i, s.frameSize - 1)];
-            }
-        }
-    }
-    
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++, src++)
-            {
-                p2ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride], interpol_weight_2s[i]);
-                p3ss[To1D(u, v, i, s.frameSize - 1)] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
-                pixss[To1D(u, v, i, s.frameSize - 1)] += p2ss[To1D(u, v, i, s.frameSize - 1)] + p3ss[To1D(u, v, i, s.frameSize - 1)];
-            }
-        }
-    }
-            
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
-            for (int u = 0; u < s.frameSize - 1; u++, dst++)
-            {
-                uint alpha = pixss[To1D(u, v, i, s.frameSize - 1)] >> 24;
-                if (alpha) *dst = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(*dst, 255 - alpha);
-            }
-        }
-    }
-#else
 
     for (uint i = 0; i < total; i++)
     {
@@ -486,7 +410,6 @@ void Game::DrawSprite(
         }
     }
 }
-#endif
 
 void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total)
 {

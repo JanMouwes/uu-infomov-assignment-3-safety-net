@@ -91,10 +91,6 @@ namespace Tmpl8
         uint tank1_frac_xs[MAX_ARMY_SIZE], tank1_frac_ys[MAX_ARMY_SIZE];
         uint tank1_interpol_weight_0s[MAX_ARMY_SIZE], tank1_interpol_weight_1s[MAX_ARMY_SIZE], tank1_interpol_weight_2s[
                  MAX_ARMY_SIZE], tank1_interpol_weight_3s[MAX_ARMY_SIZE];
-        uint tank1_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank1_p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank1_p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank1_p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint tank1_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         int tank1_frames[MAX_ARMY_SIZE];
         uint* tank1_backups[MAX_ARMY_SIZE];
@@ -111,10 +107,6 @@ namespace Tmpl8
         uint tank2_frac_xs[MAX_ARMY_SIZE], tank2_frac_ys[MAX_ARMY_SIZE];
         uint tank2_interpol_weight_0s[MAX_ARMY_SIZE], tank2_interpol_weight_1s[MAX_ARMY_SIZE], tank2_interpol_weight_2s[
                  MAX_ARMY_SIZE], tank2_interpol_weight_3s[MAX_ARMY_SIZE];
-        uint tank2_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank2_p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank2_p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank2_p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint tank2_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint* tank2_backups[MAX_ARMY_SIZE];
         Surface* tank2_last_targets[MAX_ARMY_SIZE];
@@ -133,10 +125,6 @@ namespace Tmpl8
         uint sand0_frac_xs[THIRD_MAX_SAND], sand0_frac_ys[THIRD_MAX_SAND];
         uint sand0_interpol_weight_0s[THIRD_MAX_SAND], sand0_interpol_weight_1s[THIRD_MAX_SAND],
              sand0_interpol_weight_2s[THIRD_MAX_SAND], sand0_interpol_weight_3s[THIRD_MAX_SAND];
-        uint sand0_p0ss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
-        uint sand0_p1ss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
-        uint sand0_p2ss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
-        uint sand0_p3ss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
         uint sand0_pixss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
         uint* sand0_backups[THIRD_MAX_SAND];
         Surface* sand0_last_targets[THIRD_MAX_SAND];
@@ -155,10 +143,6 @@ namespace Tmpl8
         uint sand1_frac_xs[THIRD_MAX_SAND], sand1_frac_ys[THIRD_MAX_SAND];
         uint sand1_interpol_weight_0s[THIRD_MAX_SAND], sand1_interpol_weight_1s[THIRD_MAX_SAND],
              sand1_interpol_weight_2s[THIRD_MAX_SAND], sand1_interpol_weight_3s[THIRD_MAX_SAND];
-        uint sand1_p0ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
-        uint sand1_p1ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
-        uint sand1_p2ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
-        uint sand1_p3ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
         uint sand1_pixss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
         uint* sand1_backups[THIRD_MAX_SAND];
         Surface* sand1_last_targets[THIRD_MAX_SAND];
@@ -177,10 +161,6 @@ namespace Tmpl8
         uint sand2_frac_xs[THIRD_MAX_SAND], sand2_frac_ys[THIRD_MAX_SAND];
         uint sand2_interpol_weight_0s[THIRD_MAX_SAND], sand2_interpol_weight_1s[THIRD_MAX_SAND],
              sand2_interpol_weight_2s[THIRD_MAX_SAND], sand2_interpol_weight_3s[THIRD_MAX_SAND];
-        uint sand2_p0ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
-        uint sand2_p1ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
-        uint sand2_p2ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
-        uint sand2_p3ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
         uint sand2_pixss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
         uint* sand2_backups[THIRD_MAX_SAND];
         Surface* sand2_last_targets[THIRD_MAX_SAND];
@@ -227,8 +207,7 @@ namespace Tmpl8
             int* x1s, int* x2s, int* y1s, int* y2s,
             uint* frac_xs, uint* frac_ys,
             uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
-
-            uint* p0ss, uint* p1ss, uint* p2ss, uint* p3ss, uint* pixss,
+            uint* pixss,
             Surface** last_targets,
             int2* last_poss,
             uint** backups,
