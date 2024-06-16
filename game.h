@@ -57,20 +57,21 @@ namespace Tmpl8
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
 
+        uint next_tank1;
         float2 tank1_poss[SPRITE_SOA_SIZE];
         int tank1_frames[SPRITE_SOA_SIZE];
         uint* tank1_backups[SPRITE_SOA_SIZE];
         Surface* tank1_last_targets[SPRITE_SOA_SIZE];
         int2 tank1_last_poss[SPRITE_SOA_SIZE];
 
-        
+        uint next_tank2;
         float2 tank2_poss[SPRITE_SOA_SIZE];
         int tank2_frames[SPRITE_SOA_SIZE];
         uint* tank2_backups[SPRITE_SOA_SIZE];
         Surface* tank2_last_targets[SPRITE_SOA_SIZE];
         int2 tank2_last_poss[SPRITE_SOA_SIZE];
-        void DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE]);
-        void RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE]);
+        void DrawSprite(Sprite s, float2 poss[SPRITE_SOA_SIZE], int frames[SPRITE_SOA_SIZE], Surface* target, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE], uint total);
+        void RemoveSprite(Sprite s, uint* backups[SPRITE_SOA_SIZE], Surface* last_targets[SPRITE_SOA_SIZE], int2 last_poss[SPRITE_SOA_SIZE], uint total);
         
         // static data, for global access
         static inline bool debug_print_frame_time;
