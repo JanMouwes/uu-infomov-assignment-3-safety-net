@@ -82,5 +82,30 @@ Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB
 ```
 `IBS_DC_MISS_LAT` is the "Accumulated load latencies for the loads to cache lines" [AMD uProf User Guide](https://www.amd.com/content/dam/amd/en/documents/developer/uprof-v4.0-gaGA-user-guide.pdf).
 
+Created a complete SoA style drawing flow for tank1 and tank2 sprites.
+
+### 06/06/16
+
+#### Map::Draw
+
+uProf now reports that the majority of time spent in TankGame is Map::Draw:
+
+
+```
+Line,Source,CPU_TIME(s)
+72,const uint p2 = mapLine[mapPos + 1]; // mem,0.53%
+76,const uint p4 = mapLine[mapPos + width + 1]; // mem,0.53%
+77,combined += p4; //int,0.47%
+86,"*dst = ScaleColor( p1, w1 ) + ScaleColor( p2, w2 ) + ScaleColor( p3, w3 ) + ScaleColor( p4, w4 ); //",0.41%
+```
+
+Average frame time when the right before the tanks start shooting is 35ms.
+FRAPS shows 27 FPS.
+
+Removing:
+```cpp
+#pragma omp parallel for schedule(static)
+```
+Increases performance at that point to 29ms and 33 FPS.
 
 ## Final performance

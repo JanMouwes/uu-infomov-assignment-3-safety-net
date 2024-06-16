@@ -56,7 +56,6 @@ void Map::Draw( Surface* target )
 	int dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
 	int dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
 	// draw pixels
-#pragma omp parallel for schedule(static)
 	for (int y = 0; y < SCRHEIGHT; y++)
 	{
 		uint y_fp = (view.y << 14) + y * dy;
