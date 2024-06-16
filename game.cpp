@@ -433,6 +433,7 @@ void Game::DrawSprite(
         }
     }
 #else
+
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -440,31 +441,47 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
-
-            // get lookup tables
             const uint* src0 = s.scaledPixels[interpol_weight_0s[i]] + row_origin;
             const uint* src1 = s.scaledPixels[interpol_weight_1s[i]] + row_origin;
+
+            for (int u = 0; u < s.frameSize - 1; u++)
+            {
+                pixss[To1D(u, v, i, s.frameSize - 1)] = src0[u];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += src1[u + 1];
+            }
+        }
+    }
+
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            const uint row_origin = frames[i] * s.frameSize + v * stride;
             const uint* src2 = s.scaledPixels[interpol_weight_2s[i]] + row_origin;
             const uint* src3 = s.scaledPixels[interpol_weight_3s[i]] + row_origin;
 
-            // left-to-right
             for (int u = 0; u < s.frameSize - 1; u++)
             {
-                // const uint p0 = src0[u];
-                // p0ss[To1D(u, v, i, s.frameSize - 1)] = src0[u];
-                // const uint p1 = src1[u + 1];
-                // p1ss[To1D(u, v, i, s.frameSize - 1)] = src1[u + 1];
-                // const uint p2 = src2[u + stride];
-                // p2ss[To1D(u, v, i, s.frameSize - 1)] = src2[u + stride];
-                // const uint p3 = src3[u + stride + 1];
-                // p3ss[To1D(u, v, i, s.frameSize - 1)] = src3[u + stride + 1];
-                const uint pix_colour_argb = src0[u] + src1[u + 1] + src2[u + stride] + src3[u + stride + 1];
-                // pixss[To1D(u, v, i, s.frameSize - 1)] = src0[i] + src1[u + 1] + src2[u + stride] + src3[u + stride + 1];
-                const uint alpha = pix_colour_argb >> 24;
-                // const uint alpha = pixss[To1D(u, v, i, s.frameSize - 1)] >> 24;
-                dst[u] = ScaleColor(pix_colour_argb, alpha) + ScaleColor(dst[u], 255 - alpha);
-                // dst[u] = ScaleColor(pixss[To1D(u, v, i, s.frameSize - 1)], alpha) + ScaleColor(dst[u], 255 - alpha);
+                pixss[To1D(u, v, i, s.frameSize - 1)] += src2[u + stride];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += src3[u + stride + 1];
+            }
+        }
+    }
+    
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
+            for (int u = 0; u < s.frameSize - 1; u++)
+            {
+                const uint color = pixss[To1D(u, v, i, s.frameSize - 1)];
+                const uint alpha = color >> 24;
+                dst[u] = ScaleColor(color, alpha) + ScaleColor(dst[u], 255 - alpha);
             }
         }
     }

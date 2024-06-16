@@ -199,6 +199,7 @@ Line,Source,IBS_LOAD_STORE,IBS_LOAD,IBS_DC_MISS_LAT,IBS_NB_CACHE_MODIFIED,IBS_NB
 Doing so also messes up the colors when two tanks overlap.
 At this point I can only reason that it is a long data-dependency on pixs through p0ss, p1ss, p2ss, p3ss  interpol weights?
 
-Using the scaled pixels code we pragmad out (without really optimizing for data access other than the outer loop)  yields FPS 30 and average frame time 1ms
+Using the scaled pixels code we pragmad out (without really optimizing for data access other than the outer loop)  yields FPS 30 and average frame time 21ms
+Moving it to SoA worsens performance tho to like 20 FPS?
 
 ## Final performance
