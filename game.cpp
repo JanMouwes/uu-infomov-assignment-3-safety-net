@@ -1,8 +1,8 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *processBushes;
-static Buffer *bush_poss, *bush_fracs;
+static Kernel *drawSprite;
+static Buffer *bush_poss;
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -10,9 +10,8 @@ static Buffer *bush_poss, *bush_fracs;
 void Game::Init()
 {
     Kernel::InitCL();
-    processBushes = new Kernel("cl/program.cl", "processBushes");
-    bush_poss = new Buffer(MAX_SAND * 2 * sizeof(float));
-    bush_fracs = new Buffer(MAX_SAND * 2 * sizeof(float));
+    drawSprite = new Kernel("cl/program.cl", "drawSprite");
+    bush_poss = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -68,6 +67,7 @@ void Game::Init()
         int x = RandomUInt() % map.bitmap->width;
         int y = RandomUInt() % map.bitmap->height;
         int d = (RandomUInt() & 15) - 8;
+
         if (i % 3 == 0)
         {
             assert(next_sand0 < THIRD_MAX_SAND);
@@ -76,6 +76,10 @@ void Game::Init()
             sand0_colors[next_sand0] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand0_frame_changes[next_sand0] = d;
             next_sand0++;
+
+            // fb_poss is THIRD_MAX_SAND * 2 floats
+            fb_poss[next_sand0] = x;
+            fb_poss[next_sand0 + 1] = y;
         }
         else if (i % 3 == 1)
         {
@@ -94,11 +98,12 @@ void Game::Init()
             sand2_frame_changes[next_sand2] = d;
             next_sand2++;
         }
-
-        // fb is MAX_SAND * 2 floats
-        fb_poss[i * 2 + 0] = x;
-        fb_poss[i * 2 + 1] = y;
     }
+
+    bush_poss->CopyToDevice();
+    drawSprite->SetArguments(bush_poss, BUSH_0_FRAME_SIZE);
+    drawSprite->Run(THIRD_MAX_SAND);
+    
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
     VerletFlag* flag1 = new VerletFlag(make_int2(3000, 848), flagPattern);
@@ -241,9 +246,7 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_tank2
     );
-
-    processBushes->SetArguments(bush_poss, bush_fracs);
-    processBushes->Run(MAX_SAND);
+    
     DrawSprite(
         *bush[0],
         sand0_poss,
@@ -321,10 +324,12 @@ void Game::DrawSprite(
 {
     const uint stride = s.frameCount * s.frameSize;
 
+    // TODO: Move to initialization
     for (uint i = 0; i < total; i++)
     {
         if (!backups[i]) backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
     }
+    // END TODO
 
     for (uint i = 0; i < total; i++)
     {
