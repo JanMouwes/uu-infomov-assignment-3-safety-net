@@ -12,9 +12,9 @@ void Game::Init()
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     // load bush sprite for dust streams
-    bush[0] = new Sprite("assets/bush1.png", make_int2(2, 2), make_int2(31, 31), 10, 256);
-    bush[1] = new Sprite("assets/bush2.png", make_int2(2, 2), make_int2(31, 31), 14, 256);
-    bush[2] = new Sprite("assets/bush3.png", make_int2(2, 2), make_int2(31, 31), 20, 256);
+    bush[0] = new Sprite("assets/bush1.png", make_int2(2, 2), make_int2(31, 31), BUSH_0_FRAME_SIZE, BUSH_0_FRAMES);
+    bush[1] = new Sprite("assets/bush2.png", make_int2(2, 2), make_int2(31, 31), BUSH_1_FRAME_SIZE, BUSH_1_FRAMES);
+    bush[2] = new Sprite("assets/bush3.png", make_int2(2, 2), make_int2(31, 31), BUSH_2_FRAME_SIZE, BUSH_2_SPRITE_FRAMES);
     bush[0]->ScaleAlpha(96);
     bush[1]->ScaleAlpha(64);
     bush[2]->ScaleAlpha(128);
@@ -59,7 +59,19 @@ void Game::Init()
         int x = RandomUInt() % map.bitmap->width;
         int y = RandomUInt() % map.bitmap->height;
         int d = (RandomUInt() & 15) - 8;
-        sand.push_back(new Particle(bush[i % 3], make_int2(x, y), map.bitmap->pixels[x + y * map.bitmap->width], d));
+        if (i % 3 == 0)
+        {
+            assert(next_sand0 < THIRD_MAX_SAND);
+            sand0_poss[next_sand0] = make_float2(x, y);
+            sand0_dirs[next_sand0] = make_float2( -1 - RandomFloat() * 4, 0 );
+            sand0_colors[next_sand0] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand0_frame_changes[next_sand0] = d;
+            next_sand0++;
+        }
+        else
+        {
+            sand.push_back(new Particle(bush[i % 3], make_int2(x, y), map.bitmap->pixels[x + y * map.bitmap->width], d));
+        }
     }
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
