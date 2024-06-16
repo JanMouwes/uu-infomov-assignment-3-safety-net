@@ -62,6 +62,11 @@ namespace Tmpl8
         Sprite* bush[3]; // bush sprite
         SpriteInstance* pointer; // mouse pointer sprite
 
+        /*
+         * =============================================================================================================
+         * SoA set-up. Written in order of initialization in Game::Init()
+         * =============================================================================================================
+         */
         uint next_tank1;
         float2 tank1_poss[MAX_ARMY_SIZE];
         int2 tank1_int_poss[MAX_ARMY_SIZE];
@@ -69,10 +74,10 @@ namespace Tmpl8
         uint tank1_frac_xs[MAX_ARMY_SIZE], tank1_frac_ys[MAX_ARMY_SIZE];
         uint tank1_interpol_weight_0s[MAX_ARMY_SIZE],  tank1_interpol_weight_1s[MAX_ARMY_SIZE], tank1_interpol_weight_2s[MAX_ARMY_SIZE], tank1_interpol_weight_3s[MAX_ARMY_SIZE];
         uint tank1_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank1_p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank1_p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank1_p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank1_pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
+        uint tank1_p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank1_p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank1_p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank1_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
         int tank1_frames[MAX_ARMY_SIZE];
         uint* tank1_backups[MAX_ARMY_SIZE];
         Surface* tank1_last_targets[MAX_ARMY_SIZE];
@@ -88,10 +93,10 @@ namespace Tmpl8
         uint tank2_frac_xs[MAX_ARMY_SIZE], tank2_frac_ys[MAX_ARMY_SIZE];
         uint tank2_interpol_weight_0s[MAX_ARMY_SIZE],  tank2_interpol_weight_1s[MAX_ARMY_SIZE], tank2_interpol_weight_2s[MAX_ARMY_SIZE], tank2_interpol_weight_3s[MAX_ARMY_SIZE];
         uint tank2_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
-        uint tank2_p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank2_p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank2_p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
-        uint tank2_pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
+        uint tank2_p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank2_p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank2_p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
+        uint tank2_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint* tank2_backups[MAX_ARMY_SIZE];
         Surface* tank2_last_targets[MAX_ARMY_SIZE];
         int2 tank2_last_poss[MAX_ARMY_SIZE];
@@ -99,8 +104,8 @@ namespace Tmpl8
         /*
          * DrawSprite expects that each pointer argument is an  array of size 'total'. Except for:
          * - target is a pointer to the surface to draw to
-         * - p0ss, p1ss, p2ss, p3ss, and pixss are multidimensional arrays of shape [total][s.frameSize] projected to
-         *   the shape [total * s.frameSize]
+         * - p0ss, p1ss, p2ss, p3ss, and pixss are multidimensional arrays of shape [total][s.frameSize - 1] projected to
+         *   the shape [total * (s.frameSize - 1)]
          */
         void DrawSprite(
             Sprite s,
@@ -111,7 +116,7 @@ namespace Tmpl8
             uint* frac_xs, uint* frac_ys,
             uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
             
-            uint p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE - 1][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
+            uint* p0ss, uint* p1ss, uint* p2ss, uint* p3ss, uint* pixss,
             Surface** last_targets,
             int2* last_poss,
             uint** backups,

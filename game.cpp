@@ -222,7 +222,7 @@ void Game::DrawSprite(
     int* x1s, int* x2s, int* y1s, int* y2s,
     uint* frac_xs, uint* frac_ys,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
-    uint p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
+    uint* p0ss, uint p1ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p2ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p3ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)],
     Surface** last_targets,
     int2* last_poss,
     uint** backups,
@@ -330,31 +330,31 @@ void Game::DrawSprite(
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p1ss[i][u] = ScaleColor(src[1], interpol_weight_1s[i]);
+                p1ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[1], interpol_weight_1s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p2ss[i][u] = ScaleColor(src[stride], interpol_weight_2s[i]);
+                p2ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[stride], interpol_weight_2s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p3ss[i][u] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
+                p3ss[i *  (s.frameSize - 1) + u] = ScaleColor(src[stride + 1], interpol_weight_3s[i]);
             }
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
-                pixss[i][u] = p0ss[i * (s.frameSize - 1) + u] + p1ss[i][u] + p2ss[i][u] + p3ss[i][u];
+                pixss[i *  (s.frameSize - 1) + u] = p0ss[i * (s.frameSize - 1) + u] + p1ss[i *  (s.frameSize - 1) + u] + p2ss[i *  (s.frameSize - 1) + u] + p3ss[i *  (s.frameSize - 1) + u];
             }
 
             uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
             for (int u = 0; u < s.frameSize - 1; u++, dst++)
             {
-                uint alpha = pixss[i][u] >> 24;
-                if (alpha) *dst = ScaleColor(pixss[i][u], alpha) + ScaleColor(*dst, 255 - alpha);
+                uint alpha = pixss[i *  (s.frameSize - 1) + u] >> 24;
+                if (alpha) *dst = ScaleColor(pixss[i *  (s.frameSize - 1) + u], alpha) + ScaleColor(*dst, 255 - alpha);
             }
         }
     }
