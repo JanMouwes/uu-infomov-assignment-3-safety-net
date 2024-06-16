@@ -116,7 +116,7 @@ namespace Tmpl8
         float2 sand0_dirs[THIRD_MAX_SAND];
         uint sand0_colors[THIRD_MAX_SAND];
         uint sand0_frame_changes[THIRD_MAX_SAND];
-        uint sand0_frames[THIRD_MAX_SAND];
+        int sand0_frames[THIRD_MAX_SAND];
         // Not updated by Tank::Tick()
         int2 sand0_int_poss[THIRD_MAX_SAND];
         int sand0_x1s[THIRD_MAX_SAND], sand0_x2s[THIRD_MAX_SAND], sand0_y1s[THIRD_MAX_SAND], sand0_y2s[THIRD_MAX_SAND];
@@ -132,9 +132,10 @@ namespace Tmpl8
         Surface* sand0_last_targets[THIRD_MAX_SAND];
         int2 sand0_last_poss[THIRD_MAX_SAND];
 
-        void TickSand()
+        void TickSand(uint total)
         {
-            for (uint i = 0; i < THIRD_MAX_SAND; i++)
+            assert(total < THIRD_MAX_SAND);
+            for (uint i = 0; i < total; i++)
             {
                 sand0_poss[i] += sand0_dirs[i];
                 sand0_dirs[i].y *= 0.95f;

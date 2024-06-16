@@ -135,6 +135,7 @@ void Game::Tick(float deltaTime)
     // update and render actors
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
+    RemoveSprite(*bush[0], sand0_backups, sand0_last_targets, sand0_last_poss, next_sand0);
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
     RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
@@ -144,6 +145,7 @@ void Game::Tick(float deltaTime)
     }
     if (!is_tick_paused)
     {
+        TickSand(next_sand0);
         for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
         for (int i = 0; i < (int)actorPool.size(); i++)
             if (!actorPool[i]->Tick())
@@ -212,6 +214,21 @@ void Game::Tick(float deltaTime)
         next_tank2
     );
 
+    DrawSprite(
+        *bush[0],
+        sand0_poss,
+        sand0_frames,
+        sand0_int_poss,
+        sand0_x1s, sand0_x2s, sand0_y1s, sand0_y2s,
+        sand0_frac_xs, sand0_frac_ys,
+        sand0_interpol_weight_0s, sand0_interpol_weight_1s, sand0_interpol_weight_2s, sand0_interpol_weight_3s,
+        sand0_p0ss, sand0_p1ss, sand0_p2ss, sand0_p3ss, sand0_pixss,
+        sand0_last_targets,
+        sand0_last_poss,
+        sand0_backups,
+        map.bitmap,
+        next_sand0
+    );
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
