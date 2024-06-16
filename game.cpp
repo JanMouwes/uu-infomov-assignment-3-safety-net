@@ -1,8 +1,6 @@
 #include "precomp.h"
 #include "game.h"
 
-#define MAX_FRAME_SIZE 36
-
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
@@ -14,7 +12,7 @@ void Game::Init()
     // load bush sprite for dust streams
     bush[0] = new Sprite("assets/bush1.png", make_int2(2, 2), make_int2(31, 31), BUSH_0_FRAME_SIZE, BUSH_0_FRAMES);
     bush[1] = new Sprite("assets/bush2.png", make_int2(2, 2), make_int2(31, 31), BUSH_1_FRAME_SIZE, BUSH_1_FRAMES);
-    bush[2] = new Sprite("assets/bush3.png", make_int2(2, 2), make_int2(31, 31), BUSH_2_FRAME_SIZE, BUSH_2_SPRITE_FRAMES);
+    bush[2] = new Sprite("assets/bush3.png", make_int2(2, 2), make_int2(31, 31), BUSH_2_FRAME_SIZE, BUSH_2_FRAMES);
     bush[0]->ScaleAlpha(96);
     bush[1]->ScaleAlpha(64);
     bush[2]->ScaleAlpha(128);
@@ -68,9 +66,24 @@ void Game::Init()
             sand0_frame_changes[next_sand0] = d;
             next_sand0++;
         }
+        else if (i % 3 == 1)
+        {
+            assert(next_sand1 < THIRD_MAX_SAND);
+            sand1_poss[next_sand1] = make_float2(x, y);
+            sand1_dirs[next_sand1] = make_float2( -1 - RandomFloat() * 4, 0 );
+            sand1_colors[next_sand1] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand1_frame_changes[next_sand1] = d;
+            next_sand1++;
+        }
         else
         {
-            sand.push_back(new Particle(bush[i % 3], make_int2(x, y), map.bitmap->pixels[x + y * map.bitmap->width], d));
+            
+            assert(next_sand2 < THIRD_MAX_SAND);
+            sand2_poss[next_sand2] = make_float2(x, y);
+            sand2_dirs[next_sand2] = make_float2( -1 - RandomFloat() * 4, 0 );
+            sand2_colors[next_sand2] =  map.bitmap->pixels[x + y * map.bitmap->width];
+            sand2_frame_changes[next_sand2] = d;
+            next_sand2++;
         }
     }
     // place flags
@@ -134,7 +147,8 @@ void Game::Tick(float deltaTime)
     grid.Populate(actorPool);
     // update and render actors
     pointer->Remove();
-    for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
+    RemoveSprite(*bush[2], sand2_backups, sand2_last_targets, sand2_last_poss, next_sand2);
+    RemoveSprite(*bush[1], sand1_backups, sand1_last_targets, sand1_last_poss, next_sand1);
     RemoveSprite(*bush[0], sand0_backups, sand0_last_targets, sand0_last_poss, next_sand0);
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
     RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
@@ -145,8 +159,9 @@ void Game::Tick(float deltaTime)
     }
     if (!is_tick_paused)
     {
-        TickSand(next_sand0);
-        for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Tick();
+        TickSand(sand0_poss, sand0_dirs, sand0_frames, sand0_frame_changes, next_sand0);
+        TickSand(sand1_poss, sand1_dirs, sand1_frames, sand1_frame_changes, next_sand1);
+        TickSand(sand2_poss, sand2_dirs, sand2_frames, sand2_frame_changes, next_sand2);
         for (int i = 0; i < (int)actorPool.size(); i++)
             if (!actorPool[i]->Tick())
             {
@@ -229,7 +244,37 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_sand0
     );
-    for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
+    DrawSprite(
+        *bush[1],
+        sand1_poss,
+        sand1_frames,
+        sand1_int_poss,
+        sand1_x1s, sand1_x2s, sand1_y1s, sand1_y2s,
+        sand1_frac_xs, sand1_frac_ys,
+        sand1_interpol_weight_0s, sand1_interpol_weight_1s, sand1_interpol_weight_2s, sand1_interpol_weight_3s,
+        sand1_p0ss, sand1_p1ss, sand1_p2ss, sand1_p3ss, sand1_pixss,
+        sand1_last_targets,
+        sand1_last_poss,
+        sand1_backups,
+        map.bitmap,
+        next_sand1
+    );
+    DrawSprite(
+        *bush[2],
+        sand2_poss,
+        sand2_frames,
+        sand2_int_poss,
+        sand2_x1s, sand2_x2s, sand2_y1s, sand2_y2s,
+        sand2_frac_xs, sand2_frac_ys,
+        sand2_interpol_weight_0s, sand2_interpol_weight_1s, sand2_interpol_weight_2s, sand2_interpol_weight_3s,
+        sand2_p0ss, sand2_p1ss, sand2_p2ss, sand2_p3ss, sand2_pixss,
+        sand2_last_targets,
+        sand2_last_poss,
+        sand2_backups,
+        map.bitmap,
+        next_sand2
+    );
+    
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
     // handle mouse

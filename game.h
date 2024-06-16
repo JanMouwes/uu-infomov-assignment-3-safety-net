@@ -8,7 +8,7 @@
 #define BUSH_1_FRAME_SIZE 14
 #define BUSH_1_FRAMES 256
 #define BUSH_2_FRAME_SIZE 20
-#define BUSH_2_SPRITE_FRAMES 256
+#define BUSH_2_FRAMES 256
 
 // Tank related constants
 #define MAX_ARMY_SIZE 464 // Each army spawns 464 tanks
@@ -111,13 +111,13 @@ namespace Tmpl8
         int2 tank2_last_poss[MAX_ARMY_SIZE];
 
         uint next_sand0;
-        // Updated by Particle::Tick()
+        // For TickSand
         float2 sand0_poss[THIRD_MAX_SAND];
         float2 sand0_dirs[THIRD_MAX_SAND];
         uint sand0_colors[THIRD_MAX_SAND];
         uint sand0_frame_changes[THIRD_MAX_SAND];
         int sand0_frames[THIRD_MAX_SAND];
-        // Not updated by Tank::Tick()
+        // For DrawSprite
         int2 sand0_int_poss[THIRD_MAX_SAND];
         int sand0_x1s[THIRD_MAX_SAND], sand0_x2s[THIRD_MAX_SAND], sand0_y1s[THIRD_MAX_SAND], sand0_y2s[THIRD_MAX_SAND];
         uint sand0_frac_xs[THIRD_MAX_SAND], sand0_frac_ys[THIRD_MAX_SAND];
@@ -132,28 +132,74 @@ namespace Tmpl8
         Surface* sand0_last_targets[THIRD_MAX_SAND];
         int2 sand0_last_poss[THIRD_MAX_SAND];
 
-        void TickSand(uint total)
+        uint next_sand1;
+        // For TickSand
+        float2 sand1_poss[THIRD_MAX_SAND];
+        float2 sand1_dirs[THIRD_MAX_SAND];
+        uint sand1_colors[THIRD_MAX_SAND];
+        uint sand1_frame_changes[THIRD_MAX_SAND];
+        int sand1_frames[THIRD_MAX_SAND];
+        // For DrawSprite
+        int2 sand1_int_poss[THIRD_MAX_SAND];
+        int sand1_x1s[THIRD_MAX_SAND], sand1_x2s[THIRD_MAX_SAND], sand1_y1s[THIRD_MAX_SAND], sand1_y2s[THIRD_MAX_SAND];
+        uint sand1_frac_xs[THIRD_MAX_SAND], sand1_frac_ys[THIRD_MAX_SAND];
+        uint sand1_interpol_weight_0s[THIRD_MAX_SAND], sand1_interpol_weight_1s[THIRD_MAX_SAND],
+             sand1_interpol_weight_2s[THIRD_MAX_SAND], sand1_interpol_weight_3s[THIRD_MAX_SAND];
+        uint sand1_p0ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1)];
+        uint sand1_p1ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1)];
+        uint sand1_p2ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1)];
+        uint sand1_p3ss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1)];
+        uint sand1_pixss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1)];
+        uint* sand1_backups[THIRD_MAX_SAND];
+        Surface* sand1_last_targets[THIRD_MAX_SAND];
+        int2 sand1_last_poss[THIRD_MAX_SAND];
+        
+        uint next_sand2;
+        // For TickSand
+        float2 sand2_poss[THIRD_MAX_SAND];
+        float2 sand2_dirs[THIRD_MAX_SAND];
+        uint sand2_colors[THIRD_MAX_SAND];
+        uint sand2_frame_changes[THIRD_MAX_SAND];
+        int sand2_frames[THIRD_MAX_SAND];
+        // For DrawSprite
+        int2 sand2_int_poss[THIRD_MAX_SAND];
+        int sand2_x1s[THIRD_MAX_SAND], sand2_x2s[THIRD_MAX_SAND], sand2_y1s[THIRD_MAX_SAND], sand2_y2s[THIRD_MAX_SAND];
+        uint sand2_frac_xs[THIRD_MAX_SAND], sand2_frac_ys[THIRD_MAX_SAND];
+        uint sand2_interpol_weight_0s[THIRD_MAX_SAND], sand2_interpol_weight_1s[THIRD_MAX_SAND],
+             sand2_interpol_weight_2s[THIRD_MAX_SAND], sand2_interpol_weight_3s[THIRD_MAX_SAND];
+        uint sand2_p0ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1)];
+        uint sand2_p1ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1)];
+        uint sand2_p2ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1)];
+        uint sand2_p3ss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1)];
+        uint sand2_pixss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1)];
+        uint* sand2_backups[THIRD_MAX_SAND];
+        Surface* sand2_last_targets[THIRD_MAX_SAND];
+        int2 sand2_last_poss[THIRD_MAX_SAND];
+
+        /*
+         * TickSand expects that each pointer argument is an array of shape [MAX_THIRD_SAND], and that total < THIRD_MAX_SAND. 
+         */
+        void TickSand(float2* poss, float2* dirs, int* frames, uint* frame_changes, uint total)
         {
-            assert(total < THIRD_MAX_SAND);
             for (uint i = 0; i < total; i++)
             {
-                sand0_poss[i] += sand0_dirs[i];
-                sand0_dirs[i].y *= 0.95f;
-                if (sand0_poss[i].x < 0)
+                poss[i] += dirs[i];
+                dirs[i].y *= 0.95f;
+                if (poss[i].x < 0)
                 {
-                    sand0_poss[i].x = (float)(Game::map.bitmap->width - 1);
-                    sand0_poss[i].y = (float)(RandomUInt() % Game::map.bitmap->height);
-                    sand0_dirs[i] = make_float2(-1 - RandomFloat() * 2, 0);
+                    poss[i].x = (float)(Game::map.bitmap->width - 1);
+                    poss[i].y = (float)(RandomUInt() % Game::map.bitmap->height);
+                    dirs[i] = make_float2(-1 - RandomFloat() * 2, 0);
                 }
                 for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
                 {
-                    float2 toPeak = make_float2(Game::peaks[i].x, Game::peaks[i].y) - sand0_poss[i];
+                    float2 toPeak = make_float2(Game::peaks[i].x, Game::peaks[i].y) - poss[i];
                     float g = Game::peaks[i].z * 0.02f / sqrtf(dot(toPeak, toPeak));
                     toPeak = normalize(toPeak);
-                    sand0_dirs[i].y -= toPeak.y * g;
+                    dirs[i].y -= toPeak.y * g;
                 }
-                sand0_dirs[i].y += RandomFloat() * 0.05f - 0.025f;
-                sand0_frames[i] = (sand0_frames[i] + sand0_frame_changes[i] + 256) & 255;
+                dirs[i].y += RandomFloat() * 0.05f - 0.025f;
+                frames[i] = (frames[i] + frame_changes[i] + 256) & 255;
             }
         }
 
@@ -189,7 +235,6 @@ namespace Tmpl8
         static inline Map map; // the map
         static inline vector<Actor*> actorPool; // actor pool
         static inline vector<float3> peaks; // mountain peaks to evade
-        static inline vector<Particle*> sand; // sand particles
         static inline Grid grid; // actor grid for faster range queries
         static inline int coolDown = 0; // used to prevent simultaneous firing
     };
