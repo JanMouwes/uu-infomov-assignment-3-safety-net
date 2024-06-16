@@ -68,7 +68,7 @@ namespace Tmpl8
         int tank1_x1s[MAX_ARMY_SIZE], tank1_x2s[MAX_ARMY_SIZE], tank1_y1s[MAX_ARMY_SIZE], tank1_y2s[MAX_ARMY_SIZE];
         uint tank1_frac_xs[MAX_ARMY_SIZE], tank1_frac_ys[MAX_ARMY_SIZE];
         uint tank1_interpol_weight_0s[MAX_ARMY_SIZE],  tank1_interpol_weight_1s[MAX_ARMY_SIZE], tank1_interpol_weight_2s[MAX_ARMY_SIZE], tank1_interpol_weight_3s[MAX_ARMY_SIZE];
-        uint tank1_p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
+        uint tank1_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint tank1_p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
         uint tank1_p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
         uint tank1_p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
@@ -87,7 +87,7 @@ namespace Tmpl8
         int tank2_x1s[MAX_ARMY_SIZE], tank2_x2s[MAX_ARMY_SIZE], tank2_y1s[MAX_ARMY_SIZE], tank2_y2s[MAX_ARMY_SIZE];
         uint tank2_frac_xs[MAX_ARMY_SIZE], tank2_frac_ys[MAX_ARMY_SIZE];
         uint tank2_interpol_weight_0s[MAX_ARMY_SIZE],  tank2_interpol_weight_1s[MAX_ARMY_SIZE], tank2_interpol_weight_2s[MAX_ARMY_SIZE], tank2_interpol_weight_3s[MAX_ARMY_SIZE];
-        uint tank2_p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
+        uint tank2_p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint tank2_p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
         uint tank2_p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
         uint tank2_p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1];
@@ -111,7 +111,7 @@ namespace Tmpl8
             uint* frac_xs, uint* frac_ys,
             uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
             
-            uint p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE - 1][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
+            uint p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE - 1][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
             Surface** last_targets,
             int2* last_poss,
             uint** backups,

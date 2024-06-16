@@ -222,7 +222,7 @@ void Game::DrawSprite(
     int* x1s, int* x2s, int* y1s, int* y2s,
     uint* frac_xs, uint* frac_ys,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
-    uint p0ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
+    uint p0ss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1)], uint p1ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p2ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint p3ss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1], uint pixss[MAX_ARMY_SIZE][TANK_SPRITE_FRAME_SIZE - 1],
     Surface** last_targets,
     int2* last_poss,
     uint** backups,
@@ -324,7 +324,7 @@ void Game::DrawSprite(
             uint* src = s.pixels + frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++, src++)
             {
-                p0ss[i][u] = ScaleColor(src[0], interpol_weight_0s[i]);
+                p0ss[i * (s.frameSize - 1) + u] = ScaleColor(src[0], interpol_weight_0s[i]);
             }
 
             src = s.pixels + frames[i] * s.frameSize + v * stride;
@@ -347,7 +347,7 @@ void Game::DrawSprite(
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
-                pixss[i][u] = p0ss[i][u] + p1ss[i][u] + p2ss[i][u] + p3ss[i][u];
+                pixss[i][u] = p0ss[i * (s.frameSize - 1) + u] + p1ss[i][u] + p2ss[i][u] + p3ss[i][u];
             }
 
             uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
