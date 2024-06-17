@@ -395,24 +395,35 @@ void Game::DrawSprite(
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
+
+        uint scale = interpol_weights_result[i * 4 + 0];
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src0 = s.scaledPixels[interpol_weights_result[i * 4 + 0]] + row_origin;
+            const uint* src0 = s.scaledPixels[scale] + row_origin;
             for (int u = 0; u < s.frameSize - 1; u++)
-                pixss[To1D(u, v, i, s.frameSize - 1)] = src0[u];
+            {
+                uint flatsrc0 = s.flat_scaled_pixels[scale * (s.frameCount * s.frameSize * s.frameSize) + row_origin + u];
+                pixss[To1D(u, v, i, s.frameSize - 1)] = flatsrc0; // src0[u];
+            }
         }
     }
     
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
+        uint scale = interpol_weights_result[i * 4 + 1];
+        
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src1 = s.scaledPixels[interpol_weights_result[i * 4 + 1]] + row_origin;
+            const uint* src1 = s.scaledPixels[scale] + row_origin;
             for (int u = 0; u < s.frameSize - 1; u++)
-                pixss[To1D(u, v, i, s.frameSize - 1)] += src1[u + 1];
+            {
+                const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1; // src1[u + 1];
+            }
+                
         }
     }
     
@@ -420,16 +431,20 @@ void Game::DrawSprite(
     {
         if (last_targets[i] == 0) continue;
 
+        uint scale2 = interpol_weights_result[i * 4 + 2];
+        uint scale3 = interpol_weights_result[i * 4 + 3];
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src2 = s.scaledPixels[interpol_weights_result[i * 4 + 2]] + row_origin;
-            const uint* src3 = s.scaledPixels[interpol_weights_result[i * 4 + 3]] + row_origin;
+            const uint* src2 = s.scaledPixels[scale2] + row_origin;
+            const uint* src3 = s.scaledPixels[scale3] + row_origin;
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
-                pixss[To1D(u, v, i, s.frameSize - 1)] += src2[u + stride];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += src3[u + stride + 1];
+                const uint flatsrc2 = s.flat_scaled_pixels[scale2 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc2; // src2[u + stride];
+                const uint flatsrc3 = s.flat_scaled_pixels[scale3 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride + 1];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc3; // src3[u + stride + 1];
             }
         }
     }

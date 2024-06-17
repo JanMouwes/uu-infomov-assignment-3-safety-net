@@ -18,6 +18,10 @@ namespace Tmpl8
          * Map<scale, Map<pixel index, scaled colour>>
          */
         uint **scaledPixels = 0;
+        /*
+         * A 1D scale lookup table. scaledPixels[scale][pixel] <=> flat_scaled_pixels[scale * (size * size * frame) + pixel]
+         */
+        uint *flat_scaled_pixels = 0;
         /**
          * Number of frames in the animation.
          */

@@ -136,12 +136,14 @@ Sprite::Sprite(const char* fileName, int2 topLeft, int2 bottomRight, int size, i
     frameSize = size;
     // calculate 256 versions of the original bitmap, to speedup color blending
     scaledPixels = new uint*[256];
+    flat_scaled_pixels = (uint*)_aligned_malloc(256 * frames * (size * size) * 4, 64);
     for (int i = 0; i < 256; i++)
     {
         scaledPixels[i] = (uint*)_aligned_malloc(4 * size * frames * size, 64);
-        for (int p = 0; p < size * frames * size; p++)
+        for (int pix = 0; pix < size * frames * size; pix++)
         {
-            scaledPixels[i][p] = ScaleColor(pixels[p], i);
+            scaledPixels[i][pix] = ScaleColor(pixels[pix], i);
+            flat_scaled_pixels[i * (size * size * frames) + pix] = scaledPixels[i][pix];
         }
     }
 }
