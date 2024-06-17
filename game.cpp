@@ -313,7 +313,7 @@ void Game::DrawSprite(
     uint* frac_xs, uint* frac_ys,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
     uint* pixss,
-    Surface** last_targets,
+    uint** last_targets,
     int2* last_poss,
     uint** backups,
     Surface* target,
@@ -355,7 +355,7 @@ void Game::DrawSprite(
         }
         else
         {
-            last_targets[i] = target;
+            last_targets[i] = target->pixels;
             for (int v = 0; v < s.frameSize; v++)
             {
                 uint* dst = backups[i] + v * s.frameSize;
@@ -440,7 +440,7 @@ void Game::DrawSprite(
     }
 }
 
-void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total)
+void Game::RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* last_poss, uint total)
 {
     for (int i = total - 1; i >= 0; i--)
     {
@@ -449,7 +449,7 @@ void Game::RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* 
         if (last_targets[i])
             for (int v = 0; v < s.frameSize; v++)
             {
-                memcpy(last_targets[i]->pixels + last_poss[i].x + (last_poss[i].y + v) * last_targets[i]->width,
+                memcpy(last_targets[i] + last_poss[i].x + (last_poss[i].y + v) * MAPWIDTH,
                        backups[i] + v * s.frameSize, s.frameSize * 4);
             }
     }

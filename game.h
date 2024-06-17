@@ -94,7 +94,7 @@ namespace Tmpl8
         uint tank1_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         int tank1_frames[MAX_ARMY_SIZE];
         uint* tank1_backups[MAX_ARMY_SIZE];
-        Surface* tank1_last_targets[MAX_ARMY_SIZE];
+        uint* tank1_last_targets[MAX_ARMY_SIZE];
         int2 tank1_last_poss[MAX_ARMY_SIZE];
 
         uint next_tank2;
@@ -109,7 +109,7 @@ namespace Tmpl8
                  MAX_ARMY_SIZE], tank2_interpol_weight_3s[MAX_ARMY_SIZE];
         uint tank2_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
         uint* tank2_backups[MAX_ARMY_SIZE];
-        Surface* tank2_last_targets[MAX_ARMY_SIZE];
+        uint* tank2_last_targets[MAX_ARMY_SIZE];
         int2 tank2_last_poss[MAX_ARMY_SIZE];
 
         uint next_sand0;
@@ -127,7 +127,7 @@ namespace Tmpl8
              sand0_interpol_weight_2s[THIRD_MAX_SAND], sand0_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand0_pixss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
         uint* sand0_backups[THIRD_MAX_SAND];
-        Surface* sand0_last_targets[THIRD_MAX_SAND];
+        uint* sand0_last_targets[THIRD_MAX_SAND];
         int2 sand0_last_poss[THIRD_MAX_SAND];
 
         uint next_sand1;
@@ -145,7 +145,7 @@ namespace Tmpl8
              sand1_interpol_weight_2s[THIRD_MAX_SAND], sand1_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand1_pixss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
         uint* sand1_backups[THIRD_MAX_SAND];
-        Surface* sand1_last_targets[THIRD_MAX_SAND];
+        uint* sand1_last_targets[THIRD_MAX_SAND];
         int2 sand1_last_poss[THIRD_MAX_SAND];
         
         uint next_sand2;
@@ -163,7 +163,7 @@ namespace Tmpl8
              sand2_interpol_weight_2s[THIRD_MAX_SAND], sand2_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand2_pixss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
         uint* sand2_backups[THIRD_MAX_SAND];
-        Surface* sand2_last_targets[THIRD_MAX_SAND];
+        uint* sand2_last_targets[THIRD_MAX_SAND];
         int2 sand2_last_poss[THIRD_MAX_SAND];
 
         /*
@@ -208,7 +208,7 @@ namespace Tmpl8
             uint* frac_xs, uint* frac_ys,
             uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
             uint* pixss,
-            Surface** last_targets,
+            uint** last_targets,
             int2* last_poss,
             uint** backups,
             Surface* target,
@@ -216,7 +216,7 @@ namespace Tmpl8
         /*
          * Each pointer argument should be an array of size 'total'.
          */
-        void RemoveSprite(Sprite s, uint** backups, Surface** last_targets, int2* last_poss, uint total);
+        void RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* last_poss, uint total);
 
         // static data, for global access
         static inline bool debug_print_frame_time;

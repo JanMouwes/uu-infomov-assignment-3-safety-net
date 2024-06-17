@@ -202,4 +202,13 @@ At this point I can only reason that it is a long data-dependency on pixs throug
 Using the scaled pixels code we pragmad out (without really optimizing for data access other than the outer loop)  yields FPS 30 and average frame time 21ms
 Moving it to SoA worsens performance tho to like 20 FPS?
 
+
+We have a decent SoA that can play niceish with the GPGPU. I will start GPGPU.
+
+#### 2024/06/17
+
+The use of `Surface**` last_targets doesn't port well to GPGPU.
+The `Surface*` is only used for `->pixels` (uint*), `->height` (int, basically a constant), and `->width` (int, also basically a constant).
+We can add `defines` and rely on `uint*` to play nicer with the GPGPU.
+
 ## Final performance
