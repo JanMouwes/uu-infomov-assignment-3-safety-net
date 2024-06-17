@@ -2,7 +2,7 @@
 #include "game.h"
 
 static Kernel *computeBoundingBoxes;
-static Buffer *poss_buffer, *bounding_box_buffer;
+static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer;
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -16,6 +16,8 @@ void Game::Init()
     poss_buffer->CopyFromDevice();
     bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
     bounding_box_buffer->CopyFromDevice();
+    last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof (float));
+    last_poss_buffer->CopyFromDevice();
     
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -187,6 +189,8 @@ void Game::Tick(float deltaTime)
             }
         coolDown++;
     }
+
+    // Construct SoA for drawing after physics has done its thing
     next_tank1 = 0;
     next_tank2 = 0;
     for (int s = (int)actorPool.size(), i = 0; i < s; i++)
@@ -335,13 +339,14 @@ void Game::DrawSprite(
     poss_buffer->CopyToDevice();
     // Done preparing the poss_buffer with Host data
     
-    computeBoundingBoxes->SetArguments(poss_buffer, s.frameSize, bounding_box_buffer);
+    computeBoundingBoxes->SetArguments(poss_buffer, s.frameSize, bounding_box_buffer, last_poss_buffer);
     computeBoundingBoxes->Run(total);
 
     // Get the results from the GPU
     bounding_box_buffer->CopyFromDevice();
     int *bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
-    
+
+    // Step 2, move this check out, it will make the code unconditional
     for (uint i = 0; i < total; i++)
     {
         if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= target->width || bounding_boxes[4 * i + 3] >= target->height)
@@ -357,15 +362,16 @@ void Game::DrawSprite(
                 uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * target->width;
                 memcpy(dst, src, s.frameSize * 4);
             }
-                
         }
     }
 
-    for (uint i = 0; i < total; i++)
+    // Get the results from the GPU
+    // Convert them to something that the CPU can use because of RemoveSprite
+    last_poss_buffer->CopyFromDevice();
+    int* last_poss_result = (int*)last_poss_buffer->GetHostPtr();
+    for (int i = 0; i < total; i++)
     {
-        // last_poss[i] is used by sprite remove
-        if (last_targets[i] == 0) continue;
-        last_poss[i] = make_int2(bounding_boxes[i * 4 + 0], bounding_boxes[i * 4 + 2]);
+        last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
     }
     
     for (uint i = 0; i < total; i++)
