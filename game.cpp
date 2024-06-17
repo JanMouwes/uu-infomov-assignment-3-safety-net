@@ -388,6 +388,7 @@ void Game::DrawSprite(
         poss_buffer,
         interpol_weights_buffer 
     );
+    computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
     uint* interpol_weights_result = (uint*) interpol_weights_buffer->GetHostPtr();
 
