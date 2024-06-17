@@ -1,8 +1,8 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *computeBoundingBoxes;
-static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer;
+static Kernel *computeBoundingBoxes, *computeInterpolWeights;
+static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, interpol_weights_buffer;
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -11,11 +11,14 @@ void Game::Init()
 {
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
+    computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
+    
     bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
     bounding_box_buffer->CopyFromDevice();
+    
     last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof (float));
     last_poss_buffer->CopyFromDevice();
     
@@ -320,7 +323,7 @@ void Game::DrawSprite(
     uint total
 )
 {
-    const uint stride = s.frameCount * s.frameSize;
+    uint stride = s.frameCount * s.frameSize;
 
     // TODO: Move to initialization
     for (uint i = 0; i < total; i++)
@@ -329,6 +332,7 @@ void Game::DrawSprite(
     }
     // END TODO
 
+    // Start Prepare data for the GPU
     // poss_buffer is a float2[THIRD_MAX_SAND], assumes that total < THIRD_MAX_SAND
     float *host_poss = (float*) poss_buffer->GetHostPtr();
     for (uint i = 0; i < total; i++)
@@ -337,16 +341,19 @@ void Game::DrawSprite(
         host_poss[2 * i + 1] = poss[i].y;
     }
     poss_buffer->CopyToDevice();
-    // Done preparing the poss_buffer with Host data
+    // End prepare data for the GPU
     
-    computeBoundingBoxes->SetArguments(poss_buffer, s.frameSize, bounding_box_buffer, last_poss_buffer);
+    computeBoundingBoxes->SetArguments(
+        poss_buffer,
+        s.frameSize,
+        bounding_box_buffer,
+        last_poss_buffer);
     computeBoundingBoxes->Run(total);
 
     // Get the results from the GPU
     bounding_box_buffer->CopyFromDevice();
     int *bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
 
-    // Step 2, move this check out, it will make the code unconditional
     for (uint i = 0; i < total; i++)
     {
         if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH || bounding_boxes[4 * i + 3] >= MAPHEIGHT)
@@ -421,7 +428,8 @@ void Game::DrawSprite(
             }
         }
     }
-    
+
+    // Get the results from the GPU
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;

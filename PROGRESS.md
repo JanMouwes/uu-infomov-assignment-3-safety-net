@@ -211,4 +211,11 @@ The use of `Surface**` last_targets doesn't port well to GPGPU.
 The `Surface*` is only used for `->pixels` (uint*), `->height` (int, basically a constant), and `->width` (int, also basically a constant).
 We can add `defines` and rely on `uint*` to play nicer with the GPGPU.
 
+The next issue is that s.scaledPixels is also a `uint**`.
+Likewise, `**` doesn't port to OpenCL, so the structure needs to be flattened.
+Which is just blocking me.
+My approach is now to break it into smaller kernels that are collected host side.
+The host will become the bottle-neck.
+But I'll cross that bridge when I get there.
+
 ## Final performance

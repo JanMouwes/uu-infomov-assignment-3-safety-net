@@ -140,7 +140,9 @@ Sprite::Sprite(const char* fileName, int2 topLeft, int2 bottomRight, int size, i
     {
         scaledPixels[i] = (uint*)_aligned_malloc(4 * size * frames * size, 64);
         for (int p = 0; p < size * frames * size; p++)
+        {
             scaledPixels[i][p] = ScaleColor(pixels[p], i);
+        }
     }
 }
 
