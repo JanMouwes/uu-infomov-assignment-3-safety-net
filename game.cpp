@@ -1,8 +1,8 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *drawSprite;
-static Buffer *bush_poss;
+static Kernel *computeBoundingBoxes;
+static Buffer *poss_buffer, *bounding_box_buffer;
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -10,8 +10,12 @@ static Buffer *bush_poss;
 void Game::Init()
 {
     Kernel::InitCL();
-    drawSprite = new Kernel("cl/program.cl", "drawSprite");
-    bush_poss = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
+    computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
+
+    poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
+    poss_buffer->CopyFromDevice();
+    bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
+    bounding_box_buffer->CopyFromDevice();
     
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -60,8 +64,6 @@ void Game::Init()
         }
     // add sandstorm
 
-    bush_poss->CopyFromDevice(); // Forces creation of bush_poss
-    float *fb_poss = (float*)bush_poss->GetHostPtr();
     for (int i = 0; i < MAX_SAND; i++)
     {
         int x = RandomUInt() % map.bitmap->width;
@@ -76,10 +78,6 @@ void Game::Init()
             sand0_colors[next_sand0] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand0_frame_changes[next_sand0] = d;
             next_sand0++;
-
-            // fb_poss is THIRD_MAX_SAND * 2 floats
-            fb_poss[next_sand0] = x;
-            fb_poss[next_sand0 + 1] = y;
         }
         else if (i % 3 == 1)
         {
@@ -99,10 +97,6 @@ void Game::Init()
             next_sand2++;
         }
     }
-
-    bush_poss->CopyToDevice();
-    drawSprite->SetArguments(bush_poss, BUSH_0_FRAME_SIZE);
-    drawSprite->Run(THIRD_MAX_SAND);
     
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
@@ -246,7 +240,7 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_tank2
     );
-    
+
     DrawSprite(
         *bush[0],
         sand0_poss,
@@ -331,23 +325,26 @@ void Game::DrawSprite(
     }
     // END TODO
 
+    // poss_buffer is a float2[THIRD_MAX_SAND], assumes that total < THIRD_MAX_SAND
+    float *host_poss = (float*) poss_buffer->GetHostPtr();
     for (uint i = 0; i < total; i++)
     {
-        // make_int2 just casts the component floats to integers
-        int_poss[i] = make_int2(poss[i]);
+        host_poss[2 * i + 0] = poss[i].x;
+        host_poss[2 * i + 1] = poss[i].y;
     }
+    poss_buffer->CopyToDevice();
+    // Done preparing the poss_buffer with Host data
+    
+    computeBoundingBoxes->SetArguments(poss_buffer, s.frameSize, bounding_box_buffer);
+    computeBoundingBoxes->Run(total);
 
+    // Get the results from the GPU
+    bounding_box_buffer->CopyFromDevice();
+    int *bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
+    
     for (uint i = 0; i < total; i++)
     {
-        x1s[i] = int_poss[i].x - s.frameSize / 2;
-        x2s[i] = x1s[i] + s.frameSize;
-        y1s[i] = int_poss[i].y - s.frameSize / 2;
-        y2s[i] = y1s[i] + s.frameSize;
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (x1s[i] < 0 || y1s[i] < 0 || x2s[i] >= target->width || y2s[i] >= target->height)
+        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= target->width || bounding_boxes[4 * i + 3] >= target->height)
         {
             last_targets[i] = 0;
         }
@@ -355,9 +352,12 @@ void Game::DrawSprite(
         {
             last_targets[i] = target;
             for (int v = 0; v < s.frameSize; v++)
-            memcpy(backups[i] + v * s.frameSize,
-                   target->pixels + x1s[i] + (y1s[i] + v) * target->width,
-                   s.frameSize * 4);
+            {
+                uint* dst = backups[i] + v * s.frameSize;
+                uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * target->width;
+                memcpy(dst, src, s.frameSize * 4);
+            }
+                
         }
     }
 
@@ -365,7 +365,7 @@ void Game::DrawSprite(
     {
         // last_poss[i] is used by sprite remove
         if (last_targets[i] == 0) continue;
-        last_poss[i] = make_int2(x1s[i], y1s[i]);
+        last_poss[i] = make_int2(bounding_boxes[i * 4 + 0], bounding_boxes[i * 4 + 2]);
     }
     
     for (uint i = 0; i < total; i++)
@@ -422,7 +422,8 @@ void Game::DrawSprite(
 
         for (int v = 0; v < s.frameSize - 1; v++)
         {
-            uint* dst = target->pixels + x1s[i] + (y1s[i] + v) * target->width;
+            //                              x1s[i]            y1s[i]
+            uint* dst = target->pixels + bounding_boxes[i * 4 + 0] + (bounding_boxes[i * 4 + 2] + v) * target->width;
             for (int u = 0; u < s.frameSize - 1; u++)
             {
                 const uint color = pixss[To1D(u, v, i, s.frameSize - 1)];
