@@ -10,4 +10,11 @@ __kernel void render( __global uint* pixels, const int offset )
 	pixels[x + y * 512] = (red << 16) + (green << 8);
 }
 
+__kernel void renderBlack( global uint* outimg, const uint width )
+{
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+    outimg[y * width + x] = 0;
+}
+
 // EOF

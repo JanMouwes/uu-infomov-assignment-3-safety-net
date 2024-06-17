@@ -1,6 +1,9 @@
 #include "precomp.h"
 #include "game.h"
 
+static Kernel *renderBlack;
+static Buffer *map_pixels_buffer;
+
 static Kernel *computeBoundingBoxes, *computeInterpolWeights;
 static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer;
 
@@ -12,6 +15,11 @@ void Game::Init()
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
     computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
+
+    renderBlack = new Kernel("cl/kernels.cl", "renderBlack");
+    map_pixels_buffer = new Buffer(MAPWIDTH * MAPHEIGHT * sizeof(uint));
+    map_pixels_buffer->CopyFromDevice();
+    renderBlack->SetArguments(map_pixels_buffer, MAPWIDTH);
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
@@ -114,6 +122,7 @@ void Game::Init()
     actorPool.push_back(flag2);
     // initialize map view
     map.UpdateView(screen, zoom);
+    
 }
 
 // -----------------------------------------------------------
@@ -161,6 +170,9 @@ void Game::Tick(float deltaTime)
 {
     Timer t;
     // draw the map
+    renderBlack->Run2D(int2(MAPWIDTH, MAPHEIGHT));
+    map_pixels_buffer->CopyFromDevice();
+    memcpy(map.bitmap->pixels, map_pixels_buffer->GetHostPtr(), (MAPWIDTH * MAPHEIGHT * sizeof(uint)));
     map.Draw(screen);
     // rebuild actor grid
     grid.Clear();
