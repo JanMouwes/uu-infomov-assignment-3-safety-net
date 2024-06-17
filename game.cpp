@@ -2,7 +2,7 @@
 #include "game.h"
 
 static Kernel *computeBoundingBoxes, *computeInterpolWeights;
-static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, interpol_weights_buffer;
+static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer;
 
 // -----------------------------------------------------------
 // Initialize the application
@@ -21,6 +21,9 @@ void Game::Init()
     
     last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof (float));
     last_poss_buffer->CopyFromDevice();
+
+    interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
+    interpol_weights_buffer->CopyFromDevice();
     
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -381,17 +384,12 @@ void Game::DrawSprite(
         last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
     }
     
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
-        frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
-        
-        interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
-        interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
-        interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
-        interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
-    }
+    computeInterpolWeights->SetArguments(
+        poss_buffer,
+        interpol_weights_buffer 
+    );
+    interpol_weights_buffer->CopyFromDevice();
+    uint* interpol_weights_result = (uint*) interpol_weights_buffer->GetHostPtr();
 
     for (uint i = 0; i < total; i++)
     {
@@ -400,8 +398,8 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src0 = s.scaledPixels[interpol_weight_0s[i]] + row_origin;
-            const uint* src1 = s.scaledPixels[interpol_weight_1s[i]] + row_origin;
+            const uint* src0 = s.scaledPixels[interpol_weights_result[i * 4 + 0]] + row_origin;
+            const uint* src1 = s.scaledPixels[interpol_weights_result[i * 4 + 1]] + row_origin;
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
@@ -418,8 +416,8 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src2 = s.scaledPixels[interpol_weight_2s[i]] + row_origin;
-            const uint* src3 = s.scaledPixels[interpol_weight_3s[i]] + row_origin;
+            const uint* src2 = s.scaledPixels[interpol_weights_result[i * 4 + 2]] + row_origin;
+            const uint* src3 = s.scaledPixels[interpol_weights_result[i * 4 + 3]] + row_origin;
 
             for (int u = 0; u < s.frameSize - 1; u++)
             {
