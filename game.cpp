@@ -395,21 +395,27 @@ void Game::DrawSprite(
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
-
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
             const uint* src0 = s.scaledPixels[interpol_weights_result[i * 4 + 0]] + row_origin;
-            const uint* src1 = s.scaledPixels[interpol_weights_result[i * 4 + 1]] + row_origin;
-
             for (int u = 0; u < s.frameSize - 1; u++)
-            {
                 pixss[To1D(u, v, i, s.frameSize - 1)] = src0[u];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += src1[u + 1];
-            }
         }
     }
-
+    
+    for (uint i = 0; i < total; i++)
+    {
+        if (last_targets[i] == 0) continue;
+        for (int v = 0; v < s.frameSize - 1; v++)
+        {
+            const uint row_origin = frames[i] * s.frameSize + v * stride;
+            const uint* src1 = s.scaledPixels[interpol_weights_result[i * 4 + 1]] + row_origin;
+            for (int u = 0; u < s.frameSize - 1; u++)
+                pixss[To1D(u, v, i, s.frameSize - 1)] += src1[u + 1];
+        }
+    }
+    
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
