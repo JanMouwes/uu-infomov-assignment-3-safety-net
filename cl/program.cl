@@ -60,13 +60,13 @@ __kernel void computeBoundingBoxes(
 
 __kernel void computeInterpolWeights(
     global float* poss,
-    global float* interpol_weights
+    global uint* interpol_weights
 )
 {
     int idx = get_global_id(0);
     float x = poss[2 * idx + 0];
     float y = poss[2 * idx + 1];
-
+    
     // TODO: This looks like some botched fixed-point arithmetic?
     // floor might give incorrect results used as is compared to floorf?
     //https://stackoverflow.com/questions/74488235/opencl-floor-function-doesnt-return-correct-number
@@ -75,14 +75,19 @@ __kernel void computeInterpolWeights(
     
     uint interpol_weight_0 = (frac_xs * frac_ys) >> 8;
     interpol_weights[idx * 4 + 0] = interpol_weight_0;
+    // printf("%d placed as %d\n", interpol_weight_0, interpol_weights[idx * 4 + 0]);
     
     uint interpol_weight_1 = ((255 - frac_xs) * frac_ys) >> 8;
     interpol_weights[idx * 4 + 1] = interpol_weight_1;
+    // printf("%d placed as %d\n", interpol_weight_1, interpol_weights[idx * 4 + 1]);
     
     uint interpol_weight_2 = (frac_xs * (255 - frac_ys)) >> 8;
     interpol_weights[idx * 4 + 2] = interpol_weight_2;
+    // printf("%d placed as %d\n", interpol_weight_2, interpol_weights[idx * 4 + 2]);
     
     uint interpol_weight_3 = ((255 - frac_xs) * (255 - frac_ys)) >> 8;
     interpol_weights[idx * 4 + 3] = interpol_weight_3;
+    // ("%d placed as %d\n", interpol_weight_3, interpol_weights[idx * 4 + 3]);
+    
 }
 
