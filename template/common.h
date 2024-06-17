@@ -8,6 +8,8 @@
 // default screen resolution
 #define SCRWIDTH	1280
 #define SCRHEIGHT	720
+#define MAPWIDTH 4096
+#define MAPHEIGHT 2732
 // #define FULLSCREEN
 
 // constants

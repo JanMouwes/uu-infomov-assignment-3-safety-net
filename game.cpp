@@ -349,7 +349,7 @@ void Game::DrawSprite(
     // Step 2, move this check out, it will make the code unconditional
     for (uint i = 0; i < total; i++)
     {
-        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= target->width || bounding_boxes[4 * i + 3] >= target->height)
+        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH || bounding_boxes[4 * i + 3] >= MAPHEIGHT)
         {
             last_targets[i] = 0;
         }
@@ -359,7 +359,7 @@ void Game::DrawSprite(
             for (int v = 0; v < s.frameSize; v++)
             {
                 uint* dst = backups[i] + v * s.frameSize;
-                uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * target->width;
+                uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * MAPWIDTH;
                 memcpy(dst, src, s.frameSize * 4);
             }
         }
@@ -429,7 +429,7 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             //                              x1s[i]            y1s[i]
-            uint* dst = target->pixels + bounding_boxes[i * 4 + 0] + (bounding_boxes[i * 4 + 2] + v) * target->width;
+            uint* dst = target->pixels + bounding_boxes[i * 4 + 0] + (bounding_boxes[i * 4 + 2] + v) * MAPWIDTH;
             for (int u = 0; u < s.frameSize - 1; u++)
             {
                 const uint color = pixss[To1D(u, v, i, s.frameSize - 1)];
