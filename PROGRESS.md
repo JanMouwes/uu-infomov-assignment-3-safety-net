@@ -218,4 +218,5 @@ My approach is now to break it into smaller kernels that are collected host side
 The host will become the bottle-neck.
 But I'll cross that bridge when I get there.
 
+
 ## Final performance

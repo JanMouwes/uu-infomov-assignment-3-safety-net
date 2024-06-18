@@ -120,7 +120,7 @@ __kernel void computePixels(
         const uint row_origin = frame * sprite_frame_size + v * sprite_stride;
         for (int u = 0; u < sprite_frame_size - 1; u++)
         {
-            uint scaled_pixel_index = scale0 * (sprite_frame_count * sprite_frame_size * sprite_frame_size) + row_origin + u;
+            uint scaled_pixel_index = 128 * (sprite_frame_count * sprite_frame_size * sprite_frame_size) + row_origin + u;
             // if (i == 1250) printf("\tscaled_pixel_index: %d\n", scaled_pixel_index);
             // if (scaled_pixel_index >= 256 * 256 * 10 * ) printf("%d is doing something bad by accessing %d * (%d * %d *%d) + %d + u = %d\n", i, scale0, sprite_frame_count, sprite_frame_size, sprite_frame_size, row_origin, u, scaled_pixel_index);
             uint flatsrc0 = scaled_pixels[scaled_pixel_index];

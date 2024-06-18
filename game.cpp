@@ -466,7 +466,7 @@ void Game::DrawSprite(
     computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
     uint* interpol_weights_result = (uint*)interpol_weights_buffer->GetHostPtr();
-    
+
     computePixels->SetArguments(
         interpol_weights_buffer,
         s.frameSize,
@@ -500,6 +500,7 @@ void Game::DrawSprite(
     }
     */
     
+    /*
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -534,6 +535,7 @@ void Game::DrawSprite(
             }
         }
     }
+    */
 
     // Get the results from the GPU
     for (uint i = 0; i < total; i++)
