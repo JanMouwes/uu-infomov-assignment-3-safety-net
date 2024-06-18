@@ -24,7 +24,6 @@ void Game::Init()
     
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
-    computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
@@ -431,7 +430,14 @@ void Game::DrawSprite(
         poss_buffer,
         s.frameSize,
         bounding_box_buffer,
-        last_poss_buffer);
+        last_poss_buffer,
+        interpol_weights_buffer,
+        s.frameCount,
+        stride,
+        frames_buffer,
+        scaled_pixels_buffer,
+        pixels_buffer,
+        map_buffer);
     computeBoundingBoxes->Run(total);
 
     // Get the results from the GPU
@@ -468,21 +474,6 @@ void Game::DrawSprite(
     {
         last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
     }
-
-    computeInterpolWeights->SetArguments(
-        poss_buffer,
-        interpol_weights_buffer,
-        s.frameSize,
-        s.frameCount,
-        stride,
-        frames_buffer,
-        scaled_pixels_buffer,
-        pixels_buffer,
-        map_buffer
-    );
-    computeInterpolWeights->Run(total);
-    interpol_weights_buffer->CopyFromDevice();
-    uint* interpol_weights_result = (uint*)interpol_weights_buffer->GetHostPtr();
     
     pixels_buffer->CopyFromDevice();
     uint* pixels_result = pixels_buffer->GetHostPtr();

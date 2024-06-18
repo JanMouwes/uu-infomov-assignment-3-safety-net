@@ -31,7 +31,14 @@ __kernel void computeBoundingBoxes(
     global float* poss,
     const int sprite_frame_size,
     global int* bounding_boxes,
-    global int* last_poss
+    global int* last_poss,
+    global uint* interpol_weights,
+    const int sprite_frame_count,
+    const int sprite_stride,
+    global int* frames,
+    global uint* scaled_pixels,
+    global uint* pixels,
+    global uint* map
 )
 {
     int idx = get_global_id(0);
@@ -61,23 +68,6 @@ __kernel void computeBoundingBoxes(
     // of the sprite remove.
     last_poss[2 * idx + 0] = x1;
     last_poss[2 * idx + 1] = y1;
-}
-
-__kernel void computeInterpolWeights(
-    global float* poss,
-    global uint* interpol_weights,
-    const int sprite_frame_size,
-    const int sprite_frame_count,
-    const int sprite_stride,
-    global int* frames,
-    global uint* scaled_pixels,
-    global uint* pixels,
-    global uint* map
-)
-{
-    int idx = get_global_id(0);
-    float x = poss[2 * idx + 0];
-    float y = poss[2 * idx + 1];
     
     // TODO: This looks like some botched fixed-point arithmetic?
     // floor might give incorrect results used as is compared to floorf?
