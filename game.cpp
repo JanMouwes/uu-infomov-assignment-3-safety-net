@@ -43,7 +43,6 @@ void Game::Init()
     interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
     interpol_weights_buffer->CopyFromDevice();
 
-
     pixels_buffer = new Buffer(THIRD_MAX_SAND * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint));
     pixels_buffer->CopyFromDevice();
 
@@ -76,6 +75,8 @@ void Game::Init()
     bush2_scaled_pixels_buffer->CopyFromDevice();
     memcpy(bush2_scaled_pixels_buffer->GetHostPtr(), bush[2]->flat_scaled_pixels, bush2_scaled_pixels_buffer_size);
     bush2_scaled_pixels_buffer->CopyToDevice();
+
+    screen_buffer = new Buffer(GetRenderTarget()->ID, 0, Buffer::TARGET);
 
     // pointer
     pointer = new SpriteInstance(new Sprite("assets/pointer.png"));
@@ -158,6 +159,7 @@ void Game::Init()
     // initialize map view
     map.Init(kernel_draw_map);
     map.UpdateView(screen, zoom);
+    screen = 0;
 }
 
 // -----------------------------------------------------------

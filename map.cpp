@@ -1,5 +1,7 @@
 #include "precomp.h"
 
+#include "game.h"
+
 // Fast map rendering code by Conor Holden
 
 Map::Map()
@@ -67,7 +69,7 @@ void Map::Draw( Surface* target )
 
 
 	draw_map->SetArguments(
-		new Buffer(SCRWIDTH * SCRHEIGHT * sizeof(uint), target->pixels),
+		Game::screen_buffer,
 		draw_map_bitmap_buffer,
 		bitmap->width,
 		dx,

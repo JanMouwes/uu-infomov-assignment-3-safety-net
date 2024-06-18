@@ -220,6 +220,7 @@ namespace Tmpl8
         void RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* last_poss, uint total);
 
         // static data, for global access
+        static inline Buffer *screen_buffer;
         static inline bool debug_print_frame_time;
         static inline bool is_tick_paused;
         static inline Map map; // the map
