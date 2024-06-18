@@ -2,7 +2,7 @@
 #include "game.h"
 
 static Kernel *computeBoundingBoxes, *computeInterpolWeights, *computePixels;
-static Buffer *poss_buffer, *frames_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer, *pixels_buffer;
+static Buffer *poss_buffer, *frames_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer, *pixels_buffer, *map_buffer;
 
 static Buffer *tank1_scaled_pixels_buffer, *tank2_scaled_pixels_buffer, *bush0_scaled_pixels_buffer, *bush1_scaled_pixels_buffer, *bush2_scaled_pixels_buffer;
 
@@ -25,7 +25,6 @@ void Game::Init()
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
     computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
-    // computePixels = new Kernel(computeBoundingBoxes->GetProgram(), "computePixels");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
@@ -44,6 +43,11 @@ void Game::Init()
 
     pixels_buffer = new Buffer(THIRD_MAX_SAND * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint));
     pixels_buffer->CopyFromDevice();
+
+    map_buffer = new Buffer(MAPWIDTH * MAPHEIGHT);
+    map_buffer->CopyFromDevice();
+    memcpy(map_buffer->GetHostPtr(), map.bitmap->pixels, MAPWIDTH * MAPHEIGHT);
+    map_buffer->CopyToDevice();
 
     const uint tank1_scaled_pixels_buffer_size = 256 * TANK_SPRITE_FRAMES * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint);
     tank1_scaled_pixels_buffer = new Buffer(tank1_scaled_pixels_buffer_size);
@@ -473,7 +477,8 @@ void Game::DrawSprite(
         stride,
         frames_buffer,
         scaled_pixels_buffer,
-        pixels_buffer
+        pixels_buffer,
+        map_buffer
     );
     computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
@@ -481,7 +486,6 @@ void Game::DrawSprite(
     
     pixels_buffer->CopyFromDevice();
     uint* pixels_result = pixels_buffer->GetHostPtr();
-
     memcpy(pixss, pixels_result, To1D(s.frameSize - 2, s.frameSize - 2, total - 1, s.frameSize - 1) * sizeof(uint));
 
     // Get the results from the GPU

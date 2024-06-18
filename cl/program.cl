@@ -71,7 +71,8 @@ __kernel void computeInterpolWeights(
     const int sprite_stride,
     global int* frames,
     global uint* scaled_pixels,
-    global uint* pixels
+    global uint* pixels,
+    global uint* map
 )
 {
     int idx = get_global_id(0);
