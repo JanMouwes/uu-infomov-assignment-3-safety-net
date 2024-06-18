@@ -20,6 +20,9 @@ Map::Map()
 void Map::Init(Kernel* draw_map)
 {
 	this->draw_map = draw_map;
+	this->draw_map_bitmap_buffer = new Buffer(bitmap->height * bitmap->width, bitmap->pixels);
+	//this->draw_map_bitmap_buffer->CopyFromDevice();
+	this->draw_map_surface_buffer = new Buffer(SCRWIDTH * SCRHEIGHT);
 }
 
 float inv100 = 1.0f / 100.0f;
@@ -58,18 +61,22 @@ void Map::UpdateView( Surface* target, float scale )
 
 void Map::Draw( Surface* target )
 {
-	const int dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
-	const int dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
+	const uint dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
+	const uint dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
+
+
 
 	draw_map->SetArguments(
-		target->pixels,
-		bitmap->pixels, bitmap->width, bitmap->height,
-		dx, dy,
-		view.x, view.y
+		new Buffer(SCRWIDTH * SCRHEIGHT * sizeof(uint), target->pixels),
+		draw_map_bitmap_buffer,
+		bitmap->width,
+		dx,
+		dy,
+		view.x,
+		view.y
 	);
 
-	constexpr uint total = SCRHEIGHT * SCRWIDTH;
-	draw_map->Run(total);
+	draw_map->Run2D(make_int2( SCRWIDTH, SCRHEIGHT));
 
 	// draw pixels
 
@@ -121,7 +128,6 @@ void do_map_draw(uint x_id, uint y_id,
                  uint* out_surface,
                  uint* in_bitmap,
                  uint in_bitmap_width,
-                 uint in_bitmap_height,
                  uint dx, uint dy,
                  uint view_x, uint view_y)
 {
@@ -137,11 +143,8 @@ void do_map_draw(uint x_id, uint y_id,
 	const uint mapPos = x_fp >> 14;
 	const uint p1 = map_line[mapPos];
 	const uint p2 = map_line[mapPos + 1]; // mem
-	uint combined = p1 + p2; // int
 	const uint p3 = map_line[mapPos + in_bitmap_width]; // mem
-	combined += p3; //int
 	const uint p4 = map_line[mapPos + in_bitmap_width + 1]; // mem
-	combined += p4; //int
 
 	// const bool has_colour_changed = *lst != combined;
 	// if (has_colour_changed)

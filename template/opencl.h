@@ -166,6 +166,7 @@ private:
 	void SetArgument( int idx, Buffer& buffer );
 	void SetArgument( int idx, float );
 	void SetArgument( int idx, int );
+	void SetArgument( int idx, uint );
 	void SetArgument( int idx, float2 );
 	void SetArgument( int idx, float3 );
 	void SetArgument( int idx, float4 );
