@@ -66,8 +66,6 @@ void Map::Draw( Surface* target )
 	const uint dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
 	const uint dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
 
-
-
 	draw_map->SetArguments(
 		Game::screen_buffer,
 		draw_map_bitmap_buffer,
