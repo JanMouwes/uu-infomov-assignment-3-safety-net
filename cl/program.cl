@@ -101,24 +101,47 @@ __kernel void computeInterpolWeights(
     // ("%d placed as %d\n", interpol_weight_3, interpol_weights[idx * 4 + 3]);
     
     // if (i >= 2500) printf("%d", i);
+    
+    // The frames could be different
     int frame = frames[idx];
     
-    uint scale1 = interpol_weights[idx * 4 + 1];
-    uint scale2 = interpol_weights[idx * 4 + 2];
-    uint scale3 = interpol_weights[idx * 4 + 3];
-    
-    uint scale0 = interpol_weights[idx * 4 + 0];
     // if (i == 1250) printf("scale0: %d\n", scale0);
+    uint scale0 = interpol_weights[idx * 4 + 0];
+    for (int v = 0; v < sprite_frame_size - 1; v++)
+    {
+       const uint row_origin = frame * sprite_frame_size + v * sprite_stride;
+       for (int u = 0; u < sprite_frame_size - 1; u++)
+       {
+           // printf("i: %i, v: %i, u: %i, scale: %i", i, v, u, scale0);
+           uint flatsrc0 = scaled_pixels[scale0 * (sprite_frame_count * sprite_frame_size * sprite_frame_size) + row_origin + u];
+           pixels[To1D(u, v, idx, sprite_frame_size - 1)] = flatsrc0;
+       }
+    }
+    
+    
+    uint scale1 = interpol_weights[idx * 4 + 1];
     for (int v = 0; v < sprite_frame_size - 1; v++)
     {
         const uint row_origin = frame * sprite_frame_size + v * sprite_stride;
         for (int u = 0; u < sprite_frame_size - 1; u++)
         {
-            uint scaled_pixel_index = 128 * (sprite_frame_count * sprite_frame_size * sprite_frame_size) + row_origin + u;
-            // if (i == 1250) printf("\tscaled_pixel_index: %d\n", scaled_pixel_index);
-            // if (scaled_pixel_index >= 256 * 256 * 10 * ) printf("%d is doing something bad by accessing %d * (%d * %d *%d) + %d + u = %d\n", i, scale0, sprite_frame_count, sprite_frame_size, sprite_frame_size, row_origin, u, scaled_pixel_index);
-            uint flatsrc0 = scaled_pixels[scaled_pixel_index];
-            pixels[To1D(u, v, idx, sprite_frame_size - 1)] = flatsrc0;
+            const uint flatsrc1 = scaled_pixels[scale1 * (sprite_frame_size * sprite_frame_size * sprite_frame_count) + row_origin + u + 1];
+            pixels[To1D(u, v, idx, sprite_frame_size - 1)] += flatsrc1;
+        }
+    }
+    
+    
+    uint scale2 = interpol_weights[idx * 4 + 2];
+    uint scale3 = interpol_weights[idx * 4 + 3];
+    for (int v = 0; v < sprite_frame_size - 1; v++)
+    {
+        const uint row_origin = frame * sprite_frame_size + v * sprite_stride;
+        for (int u = 0; u < sprite_frame_size - 1; u++)
+        {
+            const uint flatsrc2 = scaled_pixels[scale2 * (sprite_frame_size * sprite_frame_size * sprite_frame_count) + row_origin + u + sprite_stride];
+            pixels[To1D(u, v, idx, sprite_frame_size - 1)] += flatsrc2;
+            const uint flatsrc3 = scaled_pixels[scale3 * (sprite_frame_size * sprite_frame_size * sprite_frame_count) + row_origin + u + sprite_stride + 1];
+            pixels[To1D(u, v, idx, sprite_frame_size - 1)] += flatsrc3;
         }
     }
 }

@@ -213,7 +213,6 @@ void Game::Tick(float deltaTime)
     RemoveSprite(*bush[0], sand0_backups, sand0_last_targets, sand0_last_poss, next_sand0);
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
     RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
-    printf("tick\n");
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
     {
         if (actorPool[i]->GetType() == Actor::TANK) continue;
@@ -484,63 +483,6 @@ void Game::DrawSprite(
     uint* pixels_result = pixels_buffer->GetHostPtr();
 
     memcpy(pixss, pixels_result, To1D(s.frameSize - 2, s.frameSize - 2, total - 1, s.frameSize - 1) * sizeof(uint));
-    
-    /*
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-
-        uint scale = interpol_weights_result[i * 4 + 0];
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            const uint row_origin = frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++)
-            {
-                // printf("i: %i, v: %i, u: %i, scale: %i", i, v, u, scale);
-                uint flatsrc0 = s.flat_scaled_pixels[scale * (s.frameCount * s.frameSize * s.frameSize) + row_origin + u];
-                pixss[To1D(u, v, i, s.frameSize - 1)] = flatsrc0;
-            }
-        }
-    }
-    */
-    /*
-    
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        uint scale = interpol_weights_result[i * 4 + 1];
-
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            const uint row_origin = frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++)
-            {
-                const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1;
-            }
-        }
-    }
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-
-        uint scale2 = interpol_weights_result[i * 4 + 2];
-        uint scale3 = interpol_weights_result[i * 4 + 3];
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            const uint row_origin = frames[i] * s.frameSize + v * stride;
-            for (int u = 0; u < s.frameSize - 1; u++)
-            {
-                const uint flatsrc2 = s.flat_scaled_pixels[scale2 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc2;
-                const uint flatsrc3 = s.flat_scaled_pixels[scale3 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride + 1];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc3;
-            }
-        }
-    }
-    */
-
 
     // Get the results from the GPU
     for (uint i = 0; i < total; i++)
@@ -559,6 +501,7 @@ void Game::DrawSprite(
             }
         }
     }
+    // memcpy(target->pixels, pixels_result, );
 }
 
 void Game::RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* last_poss, uint total)
