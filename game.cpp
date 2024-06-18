@@ -26,6 +26,8 @@ void Game::Init()
     interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
     interpol_weights_buffer->CopyFromDevice();
 
+    screen_buffer = new Buffer(GetRenderTarget()->ID, 0, Buffer::TARGET);
+    
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -116,6 +118,7 @@ void Game::Init()
     // initialize map view
     map.Init(kernel_draw_map);
     map.UpdateView(screen, zoom);
+    screen = 0;
 }
 
 // -----------------------------------------------------------
