@@ -25,7 +25,7 @@ void Game::Init()
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
     computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
-    computePixels = new Kernel(computeBoundingBoxes->GetProgram(), "computePixels");
+    // computePixels = new Kernel(computeBoundingBoxes->GetProgram(), "computePixels");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
@@ -213,6 +213,7 @@ void Game::Tick(float deltaTime)
     RemoveSprite(*bush[0], sand0_backups, sand0_last_targets, sand0_last_poss, next_sand0);
     RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
     RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
+    printf("tick\n");
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
     {
         if (actorPool[i]->GetType() == Actor::TANK) continue;
@@ -378,7 +379,11 @@ void Game::DrawSprite(
     // TODO: Move to initialization
     for (uint i = 0; i < total; i++)
     {
-        if (!backups[i]) backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
+        if (!backups[i])
+        {
+            // All the backups are initialized to a non-zero value.
+            backups[i] = new uint[(s.frameSize + 1) * (s.frameSize + 1)];
+        }
     }
     // END TODO
 
@@ -435,7 +440,7 @@ void Game::DrawSprite(
         if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH ||
             bounding_boxes[4 * i + 3] >= MAPHEIGHT)
         {
-            last_targets[i] = 0;
+            last_targets[i] = nullptr;
         }
         else
         {
@@ -443,8 +448,10 @@ void Game::DrawSprite(
             for (int v = 0; v < s.frameSize; v++)
             {
                 uint* dst = backups[i] + v * s.frameSize;
+                //                                  x1                          y1
                 uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * MAPWIDTH;
-                memcpy(dst, src, s.frameSize * 4);
+                // writes to backups[i]
+                memcpy(dst, src, s.frameSize * sizeof(uint));
             }
         }
     }
@@ -461,12 +468,24 @@ void Game::DrawSprite(
 
     computeInterpolWeights->SetArguments(
         poss_buffer,
-        interpol_weights_buffer
+        interpol_weights_buffer,
+        s.frameSize,
+        s.frameCount,
+        stride,
+        frames_buffer,
+        scaled_pixels_buffer,
+        pixels_buffer
     );
     computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
     uint* interpol_weights_result = (uint*)interpol_weights_buffer->GetHostPtr();
+    
+    pixels_buffer->CopyFromDevice();
+    uint* pixels_result = pixels_buffer->GetHostPtr();
 
+    memcpy(pixss, pixels_result, To1D(s.frameSize - 2, s.frameSize - 2, total - 1, s.frameSize - 1) * sizeof(uint));
+    
+    /*
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -477,11 +496,14 @@ void Game::DrawSprite(
             const uint row_origin = frames[i] * s.frameSize + v * stride;
             for (int u = 0; u < s.frameSize - 1; u++)
             {
+                // printf("i: %i, v: %i, u: %i, scale: %i", i, v, u, scale);
                 uint flatsrc0 = s.flat_scaled_pixels[scale * (s.frameCount * s.frameSize * s.frameSize) + row_origin + u];
                 pixss[To1D(u, v, i, s.frameSize - 1)] = flatsrc0;
             }
         }
     }
+    */
+    /*
     
     for (uint i = 0; i < total; i++)
     {
@@ -517,6 +539,8 @@ void Game::DrawSprite(
             }
         }
     }
+    */
+
 
     // Get the results from the GPU
     for (uint i = 0; i < total; i++)
@@ -546,8 +570,10 @@ void Game::RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* las
         if (last_targets[i])
             for (int v = 0; v < s.frameSize; v++)
             {
-                memcpy(last_targets[i] + last_poss[i].x + (last_poss[i].y + v) * MAPWIDTH,
-                       backups[i] + v * s.frameSize, s.frameSize * 4);
+                uint* backup = backups[i];
+                uint* last_target = last_targets[i];
+                memcpy( last_target + last_poss[i].x + (last_poss[i].y + v) * MAPWIDTH,
+                       backup + v * s.frameSize, s.frameSize * sizeof(uint));
             }
     }
 }

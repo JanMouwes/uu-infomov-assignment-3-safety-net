@@ -65,7 +65,13 @@ __kernel void computeBoundingBoxes(
 
 __kernel void computeInterpolWeights(
     global float* poss,
-    global uint* interpol_weights
+    global uint* interpol_weights,
+    const int sprite_frame_size,
+    const int sprite_frame_count,
+    const int sprite_stride,
+    global int* frames,
+    global uint* scaled_pixels,
+    global uint* pixels
 )
 {
     int idx = get_global_id(0);
@@ -93,27 +99,15 @@ __kernel void computeInterpolWeights(
     uint interpol_weight_3 = ((255 - frac_xs) * (255 - frac_ys)) >> 8;
     interpol_weights[idx * 4 + 3] = interpol_weight_3;
     // ("%d placed as %d\n", interpol_weight_3, interpol_weights[idx * 4 + 3]);
-}
-
-__kernel void computePixels(
-    global uint* interpol_weights,
-    const int sprite_frame_size,
-    const int sprite_frame_count,
-    const int sprite_stride,
-    global int* frames,
-    global uint* scaled_pixels,
-    global uint* pixels
-)
-{
-    int i = get_global_id(0);
+    
     // if (i >= 2500) printf("%d", i);
-    int frame = frames[i];
+    int frame = frames[idx];
     
-    uint scale1 = interpol_weights[i * 4 + 1];
-    uint scale2 = interpol_weights[i * 4 + 2];
-    uint scale3 = interpol_weights[i * 4 + 3];
+    uint scale1 = interpol_weights[idx * 4 + 1];
+    uint scale2 = interpol_weights[idx * 4 + 2];
+    uint scale3 = interpol_weights[idx * 4 + 3];
     
-    uint scale0 = interpol_weights[i * 4 + 0];
+    uint scale0 = interpol_weights[idx * 4 + 0];
     // if (i == 1250) printf("scale0: %d\n", scale0);
     for (int v = 0; v < sprite_frame_size - 1; v++)
     {
@@ -124,7 +118,7 @@ __kernel void computePixels(
             // if (i == 1250) printf("\tscaled_pixel_index: %d\n", scaled_pixel_index);
             // if (scaled_pixel_index >= 256 * 256 * 10 * ) printf("%d is doing something bad by accessing %d * (%d * %d *%d) + %d + u = %d\n", i, scale0, sprite_frame_count, sprite_frame_size, sprite_frame_size, row_origin, u, scaled_pixel_index);
             uint flatsrc0 = scaled_pixels[scaled_pixel_index];
-            pixels[To1D(u, v, i, sprite_frame_size - 1)] = flatsrc0;
+            pixels[To1D(u, v, idx, sprite_frame_size - 1)] = flatsrc0;
         }
     }
 }
