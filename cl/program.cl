@@ -88,6 +88,5 @@ __kernel void computeInterpolWeights(
     uint interpol_weight_3 = ((255 - frac_xs) * (255 - frac_ys)) >> 8;
     interpol_weights[idx * 4 + 3] = interpol_weight_3;
     // ("%d placed as %d\n", interpol_weight_3, interpol_weights[idx * 4 + 3]);
-    
 }
 

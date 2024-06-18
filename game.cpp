@@ -400,11 +400,10 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src0 = s.scaledPixels[scale] + row_origin;
             for (int u = 0; u < s.frameSize - 1; u++)
             {
                 uint flatsrc0 = s.flat_scaled_pixels[scale * (s.frameCount * s.frameSize * s.frameSize) + row_origin + u];
-                pixss[To1D(u, v, i, s.frameSize - 1)] = flatsrc0; // src0[u];
+                pixss[To1D(u, v, i, s.frameSize - 1)] = flatsrc0;
             }
         }
     }
@@ -417,11 +416,10 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src1 = s.scaledPixels[scale] + row_origin;
             for (int u = 0; u < s.frameSize - 1; u++)
             {
                 const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1; // src1[u + 1];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1;
             }
                 
         }
@@ -436,15 +434,12 @@ void Game::DrawSprite(
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
-            const uint* src2 = s.scaledPixels[scale2] + row_origin;
-            const uint* src3 = s.scaledPixels[scale3] + row_origin;
-
             for (int u = 0; u < s.frameSize - 1; u++)
             {
                 const uint flatsrc2 = s.flat_scaled_pixels[scale2 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc2; // src2[u + stride];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc2;
                 const uint flatsrc3 = s.flat_scaled_pixels[scale3 * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + stride + 1];
-                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc3; // src3[u + stride + 1];
+                pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc3;
             }
         }
     }
