@@ -17,6 +17,11 @@ Map::Map()
 	// all done; original maps will be deleted when leaving scope.
 }
 
+void Map::Init(Kernel* draw_map)
+{
+	this->draw_map = draw_map;
+}
+
 float inv100 = 1.0f / 100.0f;
 const float inv_SCRWIDTH = 1.0f / SCRWIDTH;
 const float inv_SCRHEIGHT = 1.0f / SCRHEIGHT;
@@ -53,16 +58,34 @@ void Map::UpdateView( Surface* target, float scale )
 
 void Map::Draw( Surface* target )
 {
-	int dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
-	int dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
+	const int dx = ((view.z - view.x) * 16384) * inv_SCRWIDTH;
+	const int dy = ((view.w - view.y) * 16384) * inv_SCRHEIGHT;
+
+	draw_map->SetArguments(
+		target->pixels,
+		bitmap->pixels, bitmap->width, bitmap->height,
+		dx, dy,
+		view.x, view.y
+	);
+
+	constexpr uint total = SCRHEIGHT * SCRWIDTH;
+	draw_map->Run(total);
+
 	// draw pixels
+
+#if 0
 	for (int y = 0; y < SCRHEIGHT; y++)
 	{
-		uint y_fp = (view.y << 14) + y * dy;
-		uint* mapLine = bitmap->pixels + (y_fp >> 14) * width;
+		const uint y_fp = (view.y << 14) + y * dy;
+		const uint* mapLine = bitmap->pixels + (y_fp >> 14) * width;
 		uint* dst = target->pixels + y * SCRWIDTH;
 		uint* lst = last_frame.pixels + y * SCRWIDTH;
-		const uint y_frac = y_fp & 16383;
+
+		// bottom 14 bits
+		constexpr uint least_significant_14 = 16383;
+		const uint y_frac = y_fp & least_significant_14;
+
+		// fixed-point: 0/18/14
 		uint x_fp = view.x << 14;
 		for (int x = 0; x < SCRWIDTH; x++, x_fp += dx)
 		{
@@ -76,19 +99,72 @@ void Map::Draw( Surface* target )
 			combined += p4; //int
 			if (*lst != combined)
 			{
-				const uint x_frac = x_fp & 16383; // integer
+				const uint x_frac = x_fp & least_significant_14; // integer
 				*lst = combined; // memory
-				const uint w1 = ((16383 - x_frac) * (16383 - y_frac)) >> 20; // integer
-				const uint w3 = ((16383 - x_frac) * y_frac) >> 20;
-				const uint w2 = (x_frac * (16383 - y_frac)) >> 20;
+				const uint w1 = ((least_significant_14 - x_frac) * (least_significant_14 - y_frac)) >> 20; // integer
+				const uint w3 = ((least_significant_14 - x_frac) * y_frac) >> 20;
+				const uint w2 = (x_frac * (least_significant_14 - y_frac)) >> 20;
 				const uint w4 = 255 - (w1 + w2 + w3);
-				*dst = ScaleColor( p1, w1 ) + ScaleColor( p2, w2 ) + ScaleColor( p3, w3 ) + ScaleColor( p4, w4 ); // 
+				*dst = ScaleColor( p1, w1 ) + ScaleColor( p2, w2 ) + ScaleColor( p3, w3 ) + ScaleColor( p4, w4 ); //
 			}
 			dst++;
 			lst++;
 		}
 	}
+#endif
 }
+
+/**
+ * playground for writing the kernel
+ */
+void do_map_draw(uint x_id, uint y_id,
+                 uint* out_surface,
+                 uint* in_bitmap,
+                 uint in_bitmap_width,
+                 uint in_bitmap_height,
+                 uint dx, uint dy,
+                 uint view_x, uint view_y)
+{
+	// int x_id = get_global_id(0);
+	// int y_id = get_global_id(1);
+
+	const uint y_fp = ((view_y << 14) + y_id * dy);
+	const uint y_frac = y_fp & 16383;
+	const uint x_fp = (view_x << 14);
+
+	const uint* map_line = in_bitmap + (y_fp >> 14) * in_bitmap_width;
+
+	const uint mapPos = x_fp >> 14;
+	const uint p1 = map_line[mapPos];
+	const uint p2 = map_line[mapPos + 1]; // mem
+	uint combined = p1 + p2; // int
+	const uint p3 = map_line[mapPos + in_bitmap_width]; // mem
+	combined += p3; //int
+	const uint p4 = map_line[mapPos + in_bitmap_width + 1]; // mem
+	combined += p4; //int
+
+	// const bool has_colour_changed = *lst != combined;
+	// if (has_colour_changed)
+	// {
+		const uint x_frac = x_fp & 16383; // integer
+		// *lst = combined; // memory
+		const uint w1 = ((16383 - x_frac) * (16383 - y_frac)) >> 20; // integer
+		const uint w3 = ((16383 - x_frac) * y_frac) >> 20;
+		const uint w2 = (x_frac * (16383 - y_frac)) >> 20;
+		const uint w4 = 255 - (w1 + w2 + w3);
+
+		const uint out_1 = ((((p1 & 0xff00ff) * w1) >> 8) & 0x00ff00ff) + ((((p1 & 0xff00ff00) >> 8) * w1) & 0xff00ff00);
+		const uint out_2 = ((((p2 & 0xff00ff) * w2) >> 8) & 0x00ff00ff) + ((((p2 & 0xff00ff00) >> 8) * w2) & 0xff00ff00);
+		const uint out_3 = ((((p3 & 0xff00ff) * w3) >> 8) & 0x00ff00ff) + ((((p3 & 0xff00ff00) >> 8) * w3) & 0xff00ff00);
+		const uint out_4 = ((((p4 & 0xff00ff) * w4) >> 8) & 0x00ff00ff) + ((((p4 & 0xff00ff00) >> 8) * w4) & 0xff00ff00);
+		const uint out = out_1 + out_2 + out_3 + out_4;
+
+		// *dst = out;
+		out_surface[y_id * SCRWIDTH + x_id] = out;
+	// }
+	// lst++;
+}
+
 
 int2 Map::ScreenToMap( int2 pos )
 {

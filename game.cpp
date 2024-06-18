@@ -1,7 +1,7 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *computeBoundingBoxes, *computeInterpolWeights, *computePixels;
+static Kernel *computeBoundingBoxes, *computeInterpolWeights, *kernel_draw_map, *computePixels;
 static Buffer *poss_buffer, *frames_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer, *pixels_buffer;
 
 static Buffer *tank1_scaled_pixels_buffer, *tank2_scaled_pixels_buffer, *bush0_scaled_pixels_buffer, *bush1_scaled_pixels_buffer, *bush2_scaled_pixels_buffer;
@@ -21,11 +21,12 @@ void Game::Init()
     bush[0]->ScaleAlpha(96);
     bush[1]->ScaleAlpha(64);
     bush[2]->ScaleAlpha(128);
-    
+
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
     computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
     computePixels = new Kernel(computeBoundingBoxes->GetProgram(), "computePixels");
+    kernel_draw_map = new Kernel(computeBoundingBoxes->GetProgram(), "drawMap");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
@@ -42,6 +43,7 @@ void Game::Init()
     interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
     interpol_weights_buffer->CopyFromDevice();
 
+
     pixels_buffer = new Buffer(THIRD_MAX_SAND * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint));
     pixels_buffer->CopyFromDevice();
 
@@ -50,7 +52,7 @@ void Game::Init()
     tank1_scaled_pixels_buffer->CopyFromDevice();
     memcpy(tank1_scaled_pixels_buffer->GetHostPtr(), tank1->flat_scaled_pixels, tank1_scaled_pixels_buffer_size);
     tank1_scaled_pixels_buffer->CopyToDevice();
-    
+
     const uint tank2_scaled_pixels_buffer_size = 256 * TANK_SPRITE_FRAMES * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint);
     tank2_scaled_pixels_buffer = new Buffer(tank2_scaled_pixels_buffer_size);
     tank2_scaled_pixels_buffer->CopyFromDevice();
@@ -62,13 +64,13 @@ void Game::Init()
     bush0_scaled_pixels_buffer->CopyFromDevice();
     memcpy(bush0_scaled_pixels_buffer->GetHostPtr(), bush[0]->flat_scaled_pixels, bush0_scaled_pixels_buffer_size);
     bush0_scaled_pixels_buffer->CopyToDevice();
-    
+
     const uint bush1_scaled_pixels_buffer_size = 256 * BUSH_1_FRAMES * BUSH_1_FRAME_SIZE * BUSH_1_FRAME_SIZE * sizeof(uint);
     bush1_scaled_pixels_buffer = new Buffer(bush1_scaled_pixels_buffer_size);
     bush1_scaled_pixels_buffer->CopyFromDevice();
     memcpy(bush1_scaled_pixels_buffer->GetHostPtr(), bush[1]->flat_scaled_pixels, bush1_scaled_pixels_buffer_size);
     bush1_scaled_pixels_buffer->CopyToDevice();
-    
+
     const uint bush2_scaled_pixels_buffer_size = 256 * BUSH_2_FRAMES * BUSH_2_FRAME_SIZE * BUSH_2_FRAME_SIZE * sizeof(uint);
     bush2_scaled_pixels_buffer = new Buffer(bush2_scaled_pixels_buffer_size);
     bush2_scaled_pixels_buffer->CopyFromDevice();
@@ -154,6 +156,7 @@ void Game::Init()
     VerletFlag* flag2 = new VerletFlag(make_int2(1076, 1870), flagPattern);
     actorPool.push_back(flag2);
     // initialize map view
+    map.Init(kernel_draw_map);
     map.UpdateView(screen, zoom);
 }
 
@@ -482,7 +485,7 @@ void Game::DrawSprite(
             }
         }
     }
-    
+
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -496,6 +499,7 @@ void Game::DrawSprite(
                 const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
                 pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1;
             }
+
         }
     }
 
