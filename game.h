@@ -212,7 +212,8 @@ namespace Tmpl8
             int2* last_poss,
             uint** backups,
             Surface* target,
-            uint total);
+            uint total,
+            uint scaled_pixels_to_use);
         /*
          * Each pointer argument should be an array of size 'total'.
          */

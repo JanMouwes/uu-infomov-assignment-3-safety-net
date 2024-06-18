@@ -7,6 +7,11 @@ inline uint ScaleColor( const uint c, const uint scale )
 	return rb + ag;
 }
 
+inline uint To1D(uint x, uint y, uint z, uint square)
+{
+    return z * (square * square) + y * square + x;
+}
+
 __kernel void myKernel( write_only image2d_t outimg )
 {
 	// get thread id
@@ -24,7 +29,7 @@ __kernel void myKernel( write_only image2d_t outimg )
 
 __kernel void computeBoundingBoxes(
     global float* poss,
-    int sprite_frame_size,
+    const int sprite_frame_size,
     global int* bounding_boxes,
     global int* last_poss
 )
@@ -90,3 +95,36 @@ __kernel void computeInterpolWeights(
     // ("%d placed as %d\n", interpol_weight_3, interpol_weights[idx * 4 + 3]);
 }
 
+__kernel void computePixels(
+    global uint* interpol_weights,
+    const int sprite_frame_size,
+    const int sprite_frame_count,
+    const int sprite_stride,
+    global int* frames,
+    global uint* scaled_pixels,
+    global uint* pixels
+)
+{
+    int i = get_global_id(0);
+    // if (i >= 2500) printf("%d", i);
+    int frame = frames[i];
+    
+    uint scale1 = interpol_weights[i * 4 + 1];
+    uint scale2 = interpol_weights[i * 4 + 2];
+    uint scale3 = interpol_weights[i * 4 + 3];
+    
+    uint scale0 = interpol_weights[i * 4 + 0];
+    // if (i == 1250) printf("scale0: %d\n", scale0);
+    for (int v = 0; v < sprite_frame_size - 1; v++)
+    {
+        const uint row_origin = frame * sprite_frame_size + v * sprite_stride;
+        for (int u = 0; u < sprite_frame_size - 1; u++)
+        {
+            uint scaled_pixel_index = scale0 * (sprite_frame_count * sprite_frame_size * sprite_frame_size) + row_origin + u;
+            // if (i == 1250) printf("\tscaled_pixel_index: %d\n", scaled_pixel_index);
+            // if (scaled_pixel_index >= 256 * 256 * 10 * ) printf("%d is doing something bad by accessing %d * (%d * %d *%d) + %d + u = %d\n", i, scale0, sprite_frame_count, sprite_frame_size, sprite_frame_size, row_origin, u, scaled_pixel_index);
+            uint flatsrc0 = scaled_pixels[scaled_pixel_index];
+            pixels[To1D(u, v, i, sprite_frame_size - 1)] = flatsrc0;
+        }
+    }
+}

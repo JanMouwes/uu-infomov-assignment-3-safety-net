@@ -1,30 +1,16 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *computeBoundingBoxes, *computeInterpolWeights;
-static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer;
+static Kernel *computeBoundingBoxes, *computeInterpolWeights, *computePixels;
+static Buffer *poss_buffer, *frames_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer, *pixels_buffer;
+
+static Buffer *tank1_scaled_pixels_buffer, *tank2_scaled_pixels_buffer, *bush0_scaled_pixels_buffer, *bush1_scaled_pixels_buffer, *bush2_scaled_pixels_buffer;
 
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
-    Kernel::InitCL();
-    computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
-    computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
-
-    poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
-    poss_buffer->CopyFromDevice();
-    
-    bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
-    bounding_box_buffer->CopyFromDevice();
-    
-    last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof (float));
-    last_poss_buffer->CopyFromDevice();
-
-    interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
-    interpol_weights_buffer->CopyFromDevice();
-    
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -35,6 +21,60 @@ void Game::Init()
     bush[0]->ScaleAlpha(96);
     bush[1]->ScaleAlpha(64);
     bush[2]->ScaleAlpha(128);
+    
+    Kernel::InitCL();
+    computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
+    computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
+    computePixels = new Kernel(computeBoundingBoxes->GetProgram(), "computePixels");
+
+    poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
+    poss_buffer->CopyFromDevice();
+
+    frames_buffer = new Buffer(THIRD_MAX_SAND * sizeof(int));
+    frames_buffer->CopyFromDevice();
+
+    bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
+    bounding_box_buffer->CopyFromDevice();
+
+    last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
+    last_poss_buffer->CopyFromDevice();
+
+    interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
+    interpol_weights_buffer->CopyFromDevice();
+
+    pixels_buffer = new Buffer(THIRD_MAX_SAND * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint));
+    pixels_buffer->CopyFromDevice();
+
+    const uint tank1_scaled_pixels_buffer_size = 256 * TANK_SPRITE_FRAMES * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint);
+    tank1_scaled_pixels_buffer = new Buffer(tank1_scaled_pixels_buffer_size);
+    tank1_scaled_pixels_buffer->CopyFromDevice();
+    memcpy(tank1_scaled_pixels_buffer->GetHostPtr(), tank1->flat_scaled_pixels, tank1_scaled_pixels_buffer_size);
+    tank1_scaled_pixels_buffer->CopyToDevice();
+    
+    const uint tank2_scaled_pixels_buffer_size = 256 * TANK_SPRITE_FRAMES * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint);
+    tank2_scaled_pixels_buffer = new Buffer(tank2_scaled_pixels_buffer_size);
+    tank2_scaled_pixels_buffer->CopyFromDevice();
+    memcpy(tank2_scaled_pixels_buffer->GetHostPtr(), tank2->flat_scaled_pixels, tank2_scaled_pixels_buffer_size);
+    tank2_scaled_pixels_buffer->CopyToDevice();
+
+    const uint bush0_scaled_pixels_buffer_size = 256 * BUSH_0_FRAMES * BUSH_0_FRAME_SIZE * BUSH_0_FRAME_SIZE * sizeof(uint);
+    bush0_scaled_pixels_buffer = new Buffer(bush0_scaled_pixels_buffer_size);
+    bush0_scaled_pixels_buffer->CopyFromDevice();
+    memcpy(bush0_scaled_pixels_buffer->GetHostPtr(), bush[0]->flat_scaled_pixels, bush0_scaled_pixels_buffer_size);
+    bush0_scaled_pixels_buffer->CopyToDevice();
+    
+    const uint bush1_scaled_pixels_buffer_size = 256 * BUSH_1_FRAMES * BUSH_1_FRAME_SIZE * BUSH_1_FRAME_SIZE * sizeof(uint);
+    bush1_scaled_pixels_buffer = new Buffer(bush1_scaled_pixels_buffer_size);
+    bush1_scaled_pixels_buffer->CopyFromDevice();
+    memcpy(bush1_scaled_pixels_buffer->GetHostPtr(), bush[1]->flat_scaled_pixels, bush1_scaled_pixels_buffer_size);
+    bush1_scaled_pixels_buffer->CopyToDevice();
+    
+    const uint bush2_scaled_pixels_buffer_size = 256 * BUSH_2_FRAMES * BUSH_2_FRAME_SIZE * BUSH_2_FRAME_SIZE * sizeof(uint);
+    bush2_scaled_pixels_buffer = new Buffer(bush2_scaled_pixels_buffer_size);
+    bush2_scaled_pixels_buffer->CopyFromDevice();
+    memcpy(bush2_scaled_pixels_buffer->GetHostPtr(), bush[2]->flat_scaled_pixels, bush2_scaled_pixels_buffer_size);
+    bush2_scaled_pixels_buffer->CopyToDevice();
+
     // pointer
     pointer = new SpriteInstance(new Sprite("assets/pointer.png"));
     // create armies
@@ -98,14 +138,15 @@ void Game::Init()
         }
         else
         {
-            assert(next_sand2 < THIRD_MAX_SAND); sand2_poss[next_sand2] = make_float2(x, y);
+            assert(next_sand2 < THIRD_MAX_SAND);
+            sand2_poss[next_sand2] = make_float2(x, y);
             sand2_dirs[next_sand2] = make_float2(-1 - RandomFloat() * 4, 0);
             sand2_colors[next_sand2] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand2_frame_changes[next_sand2] = d;
             next_sand2++;
         }
     }
-    
+
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
     VerletFlag* flag1 = new VerletFlag(make_int2(3000, 848), flagPattern);
@@ -233,7 +274,8 @@ void Game::Tick(float deltaTime)
         tank1_last_poss,
         tank1_backups,
         map.bitmap,
-        next_tank1
+        next_tank1,
+        0
     );
     DrawSprite(
         *tank2,
@@ -248,7 +290,8 @@ void Game::Tick(float deltaTime)
         tank2_last_poss,
         tank2_backups,
         map.bitmap,
-        next_tank2
+        next_tank2,
+        1
     );
 
     DrawSprite(
@@ -264,7 +307,8 @@ void Game::Tick(float deltaTime)
         sand0_last_poss,
         sand0_backups,
         map.bitmap,
-        next_sand0
+        next_sand0,
+        2
     );
     DrawSprite(
         *bush[1],
@@ -279,7 +323,8 @@ void Game::Tick(float deltaTime)
         sand1_last_poss,
         sand1_backups,
         map.bitmap,
-        next_sand1
+        next_sand1,
+        3
     );
     DrawSprite(
         *bush[2],
@@ -294,9 +339,10 @@ void Game::Tick(float deltaTime)
         sand2_last_poss,
         sand2_backups,
         map.bitmap,
-        next_sand2
+        next_sand2,
+        4
     );
-    
+
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
     // handle mouse
@@ -323,10 +369,11 @@ void Game::DrawSprite(
     int2* last_poss,
     uint** backups,
     Surface* target,
-    uint total
+    uint total,
+    uint scaled_pixels_to_use
 )
 {
-    uint stride = s.frameCount * s.frameSize;
+    int stride = s.frameCount * s.frameSize;
 
     // TODO: Move to initialization
     for (uint i = 0; i < total; i++)
@@ -337,15 +384,41 @@ void Game::DrawSprite(
 
     // Start Prepare data for the GPU
     // poss_buffer is a float2[THIRD_MAX_SAND], assumes that total < THIRD_MAX_SAND
-    float *host_poss = (float*) poss_buffer->GetHostPtr();
+    float* host_poss = (float*)poss_buffer->GetHostPtr();
     for (uint i = 0; i < total; i++)
     {
         host_poss[2 * i + 0] = poss[i].x;
         host_poss[2 * i + 1] = poss[i].y;
     }
     poss_buffer->CopyToDevice();
+
+    int* host_frames = (int*)frames_buffer->GetHostPtr();
+    for (uint i = 0; i < total; i++)
+    {
+        host_frames[i] = frames[i];
+    }
+    frames_buffer->CopyToDevice();
+
+    Buffer *scaled_pixels_buffer;
+    switch (scaled_pixels_to_use)
+    {
+    case 0:
+        scaled_pixels_buffer = tank1_scaled_pixels_buffer;
+        break;
+    case 1:
+        scaled_pixels_buffer = tank2_scaled_pixels_buffer;
+        break;
+    case 2:
+        scaled_pixels_buffer = bush0_scaled_pixels_buffer;
+        break;
+    case 3:
+        scaled_pixels_buffer = bush1_scaled_pixels_buffer;
+        break;
+    case 4:
+        scaled_pixels_buffer = bush2_scaled_pixels_buffer;
+        break;
+    }
     // End prepare data for the GPU
-    
     computeBoundingBoxes->SetArguments(
         poss_buffer,
         s.frameSize,
@@ -355,11 +428,12 @@ void Game::DrawSprite(
 
     // Get the results from the GPU
     bounding_box_buffer->CopyFromDevice();
-    int *bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
+    int* bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
 
     for (uint i = 0; i < total; i++)
     {
-        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH || bounding_boxes[4 * i + 3] >= MAPHEIGHT)
+        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH ||
+            bounding_boxes[4 * i + 3] >= MAPHEIGHT)
         {
             last_targets[i] = 0;
         }
@@ -377,21 +451,38 @@ void Game::DrawSprite(
 
     // Get the results from the GPU
     // Convert them to something that the CPU can use because of RemoveSprite
+    // The last target is only used as an is alive check by remove sprite it will always be
     last_poss_buffer->CopyFromDevice();
     int* last_poss_result = (int*)last_poss_buffer->GetHostPtr();
     for (int i = 0; i < total; i++)
     {
         last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
     }
-    
+
     computeInterpolWeights->SetArguments(
         poss_buffer,
-        interpol_weights_buffer 
+        interpol_weights_buffer
     );
     computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
-    uint* interpol_weights_result = (uint*) interpol_weights_buffer->GetHostPtr();
+    uint* interpol_weights_result = (uint*)interpol_weights_buffer->GetHostPtr();
+    
+    computePixels->SetArguments(
+        interpol_weights_buffer,
+        s.frameSize,
+        s.frameCount,
+        stride,
+        frames_buffer,
+        scaled_pixels_buffer,
+        pixels_buffer
+    );
+    computePixels->Run(total);
+    pixels_buffer->CopyFromDevice();
+    uint* pixels_result = pixels_buffer->GetHostPtr();
 
+    memcpy(pixss, pixels_result, total * (s.frameSize - 1) * (s.frameSize - 1));
+
+    /*
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -407,12 +498,13 @@ void Game::DrawSprite(
             }
         }
     }
+    */
     
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         uint scale = interpol_weights_result[i * 4 + 1];
-        
+
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
@@ -421,10 +513,9 @@ void Game::DrawSprite(
                 const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
                 pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1;
             }
-                
         }
     }
-    
+
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
