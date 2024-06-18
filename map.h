@@ -22,6 +22,8 @@ public:
 	int width, height;
 	int4 view; // visible portion of the map
 	Kernel* draw_map;
+	Buffer* draw_map_bitmap_buffer;
+	Buffer* draw_map_surface_buffer;
 };
 
 } // namespace Tmpl8

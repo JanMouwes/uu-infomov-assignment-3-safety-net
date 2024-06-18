@@ -604,6 +604,7 @@ void Kernel::SetArgument( int idx, Buffer* buffer )
 void Kernel::SetArgument( int idx, Buffer& buffer ) { SetArgument( idx, &buffer ); }
 void Kernel::SetArgument( int idx, int value ) { CheckCLStarted(); clSetKernelArg( kernel, idx, sizeof( int ), &value ); }
 void Kernel::SetArgument( int idx, float value ) { CheckCLStarted(); clSetKernelArg( kernel, idx, sizeof( float ), &value ); }
+void Kernel::SetArgument( int idx, uint value ) { CheckCLStarted(); clSetKernelArg( kernel, idx, sizeof( uint ), &value ); }
 void Kernel::SetArgument( int idx, float2 value ) { CheckCLStarted(); clSetKernelArg( kernel, idx, sizeof( float2 ), &value ); }
 void Kernel::SetArgument( int idx, float3 value ) { CheckCLStarted(); float4 tmp( value, 0 ); clSetKernelArg( kernel, idx, sizeof( float4 ), &tmp ); }
 void Kernel::SetArgument( int idx, float4 value ) { CheckCLStarted(); clSetKernelArg( kernel, idx, sizeof( float4 ), &value ); }

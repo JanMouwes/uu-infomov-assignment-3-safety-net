@@ -95,30 +95,25 @@ __kernel void computeInterpolWeights(
 __kernel void drawMap(
     global uint* out_surface,
     global uint* in_bitmap,
-    global uint in_bitmap_width,
-    global uint in_bitmap_height,
-    global uint dx, global uint dy,
-    global uint view_x, global uint view_y
+    uint in_bitmap_width,
+    uint dx, uint dy,
+    uint view_x, uint view_y
 )
 {
     int x_id = get_global_id(0);
     int y_id = get_global_id(1);
 
-
-    const uint y_fp = ((view_y << 14) + y_id * dy);
+    const uint y_fp =  (view_y << 14) + y_id * dy;
     const uint y_frac = y_fp & 16383;
-    const uint x_fp = (view_x << 14);
+    const uint x_fp = (view_x << 14) + (dx * x_id);
 
     const uint* map_line = in_bitmap + (y_fp >> 14) * in_bitmap_width;
 
     const uint mapPos = x_fp >> 14;
-    const uint p1 = map_line[mapPos];
-    const uint p2 = map_line[mapPos + 1]; // mem
-    uint combined = p1 + p2; // int
-    const uint p3 = map_line[mapPos + in_bitmap_width]; // mem
-    combined += p3; //int
-    const uint p4 = map_line[mapPos + in_bitmap_width + 1]; // mem
-    combined += p4; //int
+	const uint p1 = map_line[mapPos];
+	const uint p2 = map_line[mapPos + 1]; // mem
+	const uint p3 = map_line[mapPos + in_bitmap_width]; // mem
+	const uint p4 = map_line[mapPos + in_bitmap_width + 1]; // mem
 
     const uint x_frac = x_fp & 16383; // integer
     const uint w1 = ((16383 - x_frac) * (16383 - y_frac)) >> 20; // integer
