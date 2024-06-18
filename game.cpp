@@ -1,7 +1,7 @@
 #include "precomp.h"
 #include "game.h"
 
-static Kernel *computeBoundingBoxes, *computeInterpolWeights;
+static Kernel *computeBoundingBoxes, *computeInterpolWeights, *kernel_draw_map;
 static Buffer *poss_buffer, *bounding_box_buffer, *last_poss_buffer, *interpol_weights_buffer;
 
 // -----------------------------------------------------------
@@ -12,19 +12,20 @@ void Game::Init()
     Kernel::InitCL();
     computeBoundingBoxes = new Kernel("cl/program.cl", "computeBoundingBoxes");
     computeInterpolWeights = new Kernel(computeBoundingBoxes->GetProgram(), "computeInterpolWeights");
+    kernel_draw_map = new Kernel(computeBoundingBoxes->GetProgram(), "drawMap");
 
     poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof(float));
     poss_buffer->CopyFromDevice();
-    
+
     bounding_box_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(int));
     bounding_box_buffer->CopyFromDevice();
-    
+
     last_poss_buffer = new Buffer(THIRD_MAX_SAND * 2 * sizeof (float));
     last_poss_buffer->CopyFromDevice();
 
     interpol_weights_buffer = new Buffer(THIRD_MAX_SAND * 4 * sizeof(uint));
     interpol_weights_buffer->CopyFromDevice();
-    
+
     // load tank sprites
     tank1 = new Sprite("assets/tanks.png", make_int2(128, 100), make_int2(310, 360), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
     tank2 = new Sprite("assets/tanks.png", make_int2(327, 99), make_int2(515, 349), TANK_SPRITE_FRAME_SIZE, TANK_SPRITE_FRAMES);
@@ -105,7 +106,7 @@ void Game::Init()
             next_sand2++;
         }
     }
-    
+
     // place flags
     Surface* flagPattern = new Surface("assets/flag.png");
     VerletFlag* flag1 = new VerletFlag(make_int2(3000, 848), flagPattern);
@@ -113,6 +114,7 @@ void Game::Init()
     VerletFlag* flag2 = new VerletFlag(make_int2(1076, 1870), flagPattern);
     actorPool.push_back(flag2);
     // initialize map view
+    map.Init(kernel_draw_map);
     map.UpdateView(screen, zoom);
 }
 
@@ -296,7 +298,7 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_sand2
     );
-    
+
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
     // handle mouse
@@ -345,7 +347,7 @@ void Game::DrawSprite(
     }
     poss_buffer->CopyToDevice();
     // End prepare data for the GPU
-    
+
     computeBoundingBoxes->SetArguments(
         poss_buffer,
         s.frameSize,
@@ -383,10 +385,10 @@ void Game::DrawSprite(
     {
         last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
     }
-    
+
     computeInterpolWeights->SetArguments(
         poss_buffer,
-        interpol_weights_buffer 
+        interpol_weights_buffer
     );
     computeInterpolWeights->Run(total);
     interpol_weights_buffer->CopyFromDevice();
@@ -408,12 +410,12 @@ void Game::DrawSprite(
             }
         }
     }
-    
+
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
         uint scale = interpol_weights_result[i * 4 + 1];
-        
+
         for (int v = 0; v < s.frameSize - 1; v++)
         {
             const uint row_origin = frames[i] * s.frameSize + v * stride;
@@ -423,10 +425,10 @@ void Game::DrawSprite(
                 const uint flatsrc1 = s.flat_scaled_pixels[scale * (s.frameSize * s.frameSize * s.frameCount) + row_origin + u + 1];
                 pixss[To1D(u, v, i, s.frameSize - 1)] += flatsrc1; // src1[u + 1];
             }
-                
+
         }
     }
-    
+
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;

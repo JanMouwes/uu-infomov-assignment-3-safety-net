@@ -7,6 +7,8 @@ class Map
 {
 public:
 	Map();
+
+	void Init(Kernel* draw_map);
 	void UpdateView( Surface* target, float scale );
 	void Draw( Surface* target );
 	void SetFocus( int2 pos ) { focus = pos; }
@@ -19,6 +21,7 @@ public:
 	int* elevation;
 	int width, height;
 	int4 view; // visible portion of the map
+	Kernel* draw_map;
 };
 
 } // namespace Tmpl8

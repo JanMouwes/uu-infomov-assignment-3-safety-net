@@ -91,3 +91,47 @@ __kernel void computeInterpolWeights(
     
 }
 
+
+__kernel void drawMap(
+    global uint* out_surface,
+    global uint* in_bitmap,
+    global uint in_bitmap_width,
+    global uint in_bitmap_height,
+    global uint dx, global uint dy,
+    global uint view_x, global uint view_y
+)
+{
+    int x_id = get_global_id(0);
+    int y_id = get_global_id(1);
+
+
+    const uint y_fp = ((view_y << 14) + y_id * dy);
+    const uint y_frac = y_fp & 16383;
+    const uint x_fp = (view_x << 14);
+
+    const uint* map_line = in_bitmap + (y_fp >> 14) * in_bitmap_width;
+
+    const uint mapPos = x_fp >> 14;
+    const uint p1 = map_line[mapPos];
+    const uint p2 = map_line[mapPos + 1]; // mem
+    uint combined = p1 + p2; // int
+    const uint p3 = map_line[mapPos + in_bitmap_width]; // mem
+    combined += p3; //int
+    const uint p4 = map_line[mapPos + in_bitmap_width + 1]; // mem
+    combined += p4; //int
+
+    const uint x_frac = x_fp & 16383; // integer
+    const uint w1 = ((16383 - x_frac) * (16383 - y_frac)) >> 20; // integer
+    const uint w3 = ((16383 - x_frac) * y_frac) >> 20;
+    const uint w2 = (x_frac * (16383 - y_frac)) >> 20;
+    const uint w4 = 255 - (w1 + w2 + w3);
+
+    const uint out_1 = ((((p1 & 0xff00ff) * w1) >> 8) & 0x00ff00ff) + ((((p1 & 0xff00ff00) >> 8) * w1) & 0xff00ff00);
+    const uint out_2 = ((((p2 & 0xff00ff) * w2) >> 8) & 0x00ff00ff) + ((((p2 & 0xff00ff00) >> 8) * w2) & 0xff00ff00);
+    const uint out_3 = ((((p3 & 0xff00ff) * w3) >> 8) & 0x00ff00ff) + ((((p3 & 0xff00ff00) >> 8) * w3) & 0xff00ff00);
+    const uint out_4 = ((((p4 & 0xff00ff) * w4) >> 8) & 0x00ff00ff) + ((((p4 & 0xff00ff00) >> 8) * w4) & 0xff00ff00);
+    const uint out = out_1 + out_2 + out_3 + out_4;
+
+    out_surface[y_id * SCRWIDTH + x_id] = out;
+}
+
