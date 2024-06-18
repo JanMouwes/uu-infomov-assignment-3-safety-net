@@ -467,22 +467,6 @@ void Game::DrawSprite(
     interpol_weights_buffer->CopyFromDevice();
     uint* interpol_weights_result = (uint*)interpol_weights_buffer->GetHostPtr();
 
-    computePixels->SetArguments(
-        interpol_weights_buffer,
-        s.frameSize,
-        s.frameCount,
-        stride,
-        frames_buffer,
-        scaled_pixels_buffer,
-        pixels_buffer
-    );
-    computePixels->Run(total);
-    pixels_buffer->CopyFromDevice();
-    uint* pixels_result = pixels_buffer->GetHostPtr();
-
-    memcpy(pixss, pixels_result, total * (s.frameSize - 1) * (s.frameSize - 1));
-
-    /*
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -498,9 +482,7 @@ void Game::DrawSprite(
             }
         }
     }
-    */
     
-    /*
     for (uint i = 0; i < total; i++)
     {
         if (last_targets[i] == 0) continue;
@@ -535,7 +517,6 @@ void Game::DrawSprite(
             }
         }
     }
-    */
 
     // Get the results from the GPU
     for (uint i = 0; i < total; i++)
