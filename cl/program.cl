@@ -135,4 +135,15 @@ __kernel void computeBoundingBoxes(
             pixels[To1D(u, v, idx, sprite_frame_size - 1)] += flatsrc3;
         }
     }
+    
+    for (int v = 0; v < sprite_frame_size - 1; v++)
+    {
+        uint* dst = map + bounding_boxes[idx * 4 + 0] + (bounding_boxes[idx * 4 + 2] + v) * MAPWIDTH;
+        for (int u = 0; u < sprite_frame_size - 1; u++)
+        {
+            const uint color = pixels[To1D(u, v, idx, sprite_frame_size - 1)];
+            const uint alpha = color >> 24;
+            dst[u] = ScaleColor(color, alpha) + ScaleColor(dst[u], 255 - alpha);
+        }
+    }
 }

@@ -43,9 +43,10 @@ void Game::Init()
     pixels_buffer = new Buffer(THIRD_MAX_SAND * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint));
     pixels_buffer->CopyFromDevice();
 
-    map_buffer = new Buffer(MAPWIDTH * MAPHEIGHT);
+    const uint map_buffer_size = MAPWIDTH * MAPHEIGHT * sizeof(uint);
+    map_buffer = new Buffer(map_buffer_size);
     map_buffer->CopyFromDevice();
-    memcpy(map_buffer->GetHostPtr(), map.bitmap->pixels, MAPWIDTH * MAPHEIGHT);
+    memcpy(map_buffer->GetHostPtr(), map.bitmap->pixels, map_buffer_size);
     map_buffer->CopyToDevice();
 
     const uint tank1_scaled_pixels_buffer_size = 256 * TANK_SPRITE_FRAMES * TANK_SPRITE_FRAME_SIZE * TANK_SPRITE_FRAME_SIZE * sizeof(uint);
@@ -440,63 +441,9 @@ void Game::DrawSprite(
         map_buffer);
     computeBoundingBoxes->Run(total);
 
-    // Get the results from the GPU
-    bounding_box_buffer->CopyFromDevice();
-    int* bounding_boxes = (int*)bounding_box_buffer->GetHostPtr();
-
-    for (uint i = 0; i < total; i++)
-    {
-        if (bounding_boxes[4 * i + 0] < 0 || bounding_boxes[4 * i + 2] < 0 || bounding_boxes[4 * i + 1] >= MAPWIDTH ||
-            bounding_boxes[4 * i + 3] >= MAPHEIGHT)
-        {
-            last_targets[i] = nullptr;
-        }
-        else
-        {
-            last_targets[i] = target->pixels;
-            for (int v = 0; v < s.frameSize; v++)
-            {
-                uint* dst = backups[i] + v * s.frameSize;
-                //                                  x1                          y1
-                uint* src = target->pixels + bounding_boxes[4 * i + 0] + (bounding_boxes[4 * i + 2] + v) * MAPWIDTH;
-                // writes to backups[i]
-                memcpy(dst, src, s.frameSize * sizeof(uint));
-            }
-        }
-    }
-
-    // Get the results from the GPU
-    // Convert them to something that the CPU can use because of RemoveSprite
-    // The last target is only used as an is alive check by remove sprite it will always be
-    last_poss_buffer->CopyFromDevice();
-    int* last_poss_result = (int*)last_poss_buffer->GetHostPtr();
-    for (int i = 0; i < total; i++)
-    {
-        last_poss[i] = make_int2(last_poss_result[i * 2 + 0], last_poss_result[i * 2 + 1]);
-    }
-    
-    pixels_buffer->CopyFromDevice();
-    uint* pixels_result = pixels_buffer->GetHostPtr();
-    memcpy(pixss, pixels_result, To1D(s.frameSize - 2, s.frameSize - 2, total - 1, s.frameSize - 1) * sizeof(uint));
-
-    // Get the results from the GPU
-    for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-
-        for (int v = 0; v < s.frameSize - 1; v++)
-        {
-            //                              x1s[i]            y1s[i]
-            uint* dst = target->pixels + bounding_boxes[i * 4 + 0] + (bounding_boxes[i * 4 + 2] + v) * MAPWIDTH;
-            for (int u = 0; u < s.frameSize - 1; u++)
-            {
-                const uint color = pixss[To1D(u, v, i, s.frameSize - 1)];
-                const uint alpha = color >> 24;
-                dst[u] = ScaleColor(color, alpha) + ScaleColor(dst[u], 255 - alpha);
-            }
-        }
-    }
-    // memcpy(target->pixels, pixels_result, );
+    map_buffer->CopyFromDevice();
+    uint* map_result = map_buffer->GetHostPtr();
+    memcpy(map.bitmap->pixels, map_result, MAPWIDTH * MAPHEIGHT * sizeof(uint));
 }
 
 void Game::RemoveSprite(Sprite s, uint** backups, uint** last_targets, int2* last_poss, uint total)

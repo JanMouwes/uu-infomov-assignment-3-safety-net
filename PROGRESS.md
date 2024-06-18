@@ -218,5 +218,27 @@ My approach is now to break it into smaller kernels that are collected host side
 The host will become the bottle-neck.
 But I'll cross that bridge when I get there.
 
+#### 2024/06/18
+
+Computing all pixel values on the GPU in 5 calls yields the following performance:
+
+- average frame time is around 48ms
+- Fraps show 19-20 FPS
+- `Game::Tick` is not the most time-consuming function:
+```
+Line,Source,CPU_TIME(s)
+332,DrawSprite(,12.91%
+283,DrawSprite(,3.67%
+267,DrawSprite(,2.56%
+```
+
+Basically: Drawing bush2s, tank2s, and tank1s.
+
+As a follow up the
+```
+Line,Source,CPU_TIME(s)
+495,"dst[u] = ScaleColor(color, alpha) + ScaleColor(dst[u], 255 - alpha);",5.53%
+```
+is still high, but considerably less than whatever percent.
 
 ## Final performance
