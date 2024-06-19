@@ -149,7 +149,7 @@ void Game::Tick(float deltaTime)
     }
     next_tank1 = 0;
     next_tank2 = 0;
-    for (int s = (int)actorPool.size(), i = 0; i < s; i++)
+    for (int s = (int)actorPool.size(), i = 0; i < s / 8; i++)
     {
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 0)
         {
@@ -167,7 +167,40 @@ void Game::Tick(float deltaTime)
             next_tank2++;
             // continue;
         }
-        actorPool[i]->Draw();
+        // actorPool[i]->Draw();
+
+        SpriteInstance sprite8[8] = {
+            actorPool[8 * i + 0]->sprite,
+            actorPool[8 * i + 1]->sprite,
+            actorPool[8 * i + 2]->sprite,
+            actorPool[8 * i + 3]->sprite,
+            actorPool[8 * i + 4]->sprite,
+            actorPool[8 * i + 5]->sprite,
+            actorPool[8 * i + 6]->sprite,
+            actorPool[8 * i + 7]->sprite
+        };
+        float2 pos8[8] = {
+            actorPool[8 * i + 0]->pos,
+            actorPool[8 * i + 1]->pos,
+            actorPool[8 * i + 2]->pos,
+            actorPool[8 * i + 3]->pos,
+            actorPool[8 * i + 4]->pos,
+            actorPool[8 * i + 5]->pos,
+            actorPool[8 * i + 6]->pos,
+            actorPool[8 * i + 7]->pos
+        };
+        int frame8[8] = {
+            actorPool[8 * i + 0]->frame,
+            actorPool[8 * i + 1]->frame,
+            actorPool[8 * i + 2]->frame,
+            actorPool[8 * i + 3]->frame,
+            actorPool[8 * i + 4]->frame,
+            actorPool[8 * i + 5]->frame,
+            actorPool[8 * i + 6]->frame,
+            actorPool[8 * i + 7]->frame
+        };
+
+        Draw8(sprite8, Map::bitmap, pos8, frame8);
     }
 
     // DrawSprite(*tank1, tank1_poss, tank1_frames, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
