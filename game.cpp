@@ -181,7 +181,8 @@ void Game::Tick(float deltaTime)
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 0)
         {
             assert(next_tank1 < MAX_ARMY_SIZE);
-            tank1_poss[next_tank1] = actorPool[i]->pos;
+            tank1_xs[next_tank1] = actorPool[i]->pos.x;
+            tank1_ys[next_tank1] = actorPool[i]->pos.y;
             tank1_frames[next_tank1] = actorPool[i]->frame;
             next_tank1++;
             continue;
@@ -189,7 +190,8 @@ void Game::Tick(float deltaTime)
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 1)
         {
             assert(next_tank2 < MAX_ARMY_SIZE);
-            tank2_poss[next_tank2] = actorPool[i]->pos;
+            tank2_xs[next_tank2] = actorPool[i]->pos.x;
+            tank2_ys[next_tank2] = actorPool[i]->pos.y;
             tank2_frames[next_tank2] = actorPool[i]->frame;
             next_tank2++;
             continue;
@@ -199,11 +201,13 @@ void Game::Tick(float deltaTime)
 
     DrawSprite(
         *tank1,
-        tank1_poss,
+        tank1_xs, tank1_ys,
+        tank1_x8s, tank1_y8s,
         tank1_frames,
         tank1_int_poss,
         tank1_x1s, tank1_x2s, tank1_y1s, tank1_y2s,
         tank1_frac_xs, tank1_frac_ys,
+        tank1_frac_x8s, tank1_frac_y8s,
         tank1_interpol_weight_0s, tank1_interpol_weight_1s, tank1_interpol_weight_2s, tank1_interpol_weight_3s,
         tank1_pixss,
         tank1_last_targets,
@@ -214,11 +218,13 @@ void Game::Tick(float deltaTime)
     );
     DrawSprite(
         *tank2,
-        tank2_poss,
+        tank2_xs, tank2_ys,
+        tank2_x8s, tank2_x8s,
         tank2_frames,
         tank2_int_poss,
         tank2_x1s, tank2_x2s, tank2_y1s, tank2_y2s,
         tank2_frac_xs, tank2_frac_ys,
+        tank2_frac_x8s, tank2_frac_y8s,
         tank2_interpol_weight_0s, tank2_interpol_weight_1s, tank2_interpol_weight_2s, tank2_interpol_weight_3s,
         tank2_pixss,
         tank2_last_targets,
@@ -227,7 +233,7 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_tank2
     );
-
+    /*
     DrawSprite(
         *bush[0],
         sand0_poss,
@@ -273,6 +279,7 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_sand2
     );
+    */
     
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);
@@ -287,13 +294,45 @@ void Game::Tick(float deltaTime)
     }
 }
 
+// Helpers for Draw Sprite
+inline void ComputeFracs(__m256 *x8s, __m256 *y8s, __m256i* frac_x8s, __m256i* frac_y8s, uint length)
+{
+    for (uint i = 0; i < length / 8; i++)
+        frac_x8s[i] = _mm256_cvtps_epi32(
+            _mm256_mul_ps(
+                _mm256_set1_ps(255.0f),
+                _mm256_sub_ps(
+                    x8s[i],
+                    _mm256_floor_ps(
+                        x8s[i]
+                    )
+                )
+            )
+        );
+    
+    for (uint i = 0; i < length / 8; i++)
+        frac_y8s[i] = _mm256_cvtps_epi32(
+            _mm256_mul_ps(
+                _mm256_set1_ps(255.0f),
+                _mm256_sub_ps(
+                    y8s[i],
+                    _mm256_floor_ps(
+                       y8s[i]
+                    )
+                )
+            )
+        );
+}
+
 void Game::DrawSprite(
     Sprite s,
-    float2* poss,
+    float* xs, float* ys,
+    __m256* x8s, __m256* y8s,
     int* frames,
     int2* int_poss,
     int* x1s, int* x2s, int* y1s, int* y2s,
     uint* frac_xs, uint* frac_ys,
+    __m256i *frac_x8s, __m256i *frac_y8s,
     uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
     uint* pixss,
     Surface** last_targets,
@@ -312,7 +351,7 @@ void Game::DrawSprite(
 
     for (uint i = 0; i < total; i++)
     {
-        int_poss[i] = make_int2(poss[i]);
+        int_poss[i] = make_int2(xs[i], ys[i]);
     }
 
     for (uint i = 0; i < total; i++)
@@ -345,18 +384,17 @@ void Game::DrawSprite(
         if (last_targets[i] == 0) continue;
         last_poss[i] = make_int2(x1s[i], y1s[i]);
     }
-    
+
+    ComputeFracs(x8s, y8s, frac_x8s, frac_y8s, total);
+
     for (uint i = 0; i < total; i++)
-    {
-        if (last_targets[i] == 0) continue;
-        frac_xs[i] = (int)(255.0f * (poss[i].x - floorf(poss[i].x)));
-        frac_ys[i] = (int)(255.0f * (poss[i].y - floorf(poss[i].y)));
-        
         interpol_weight_0s[i] = (frac_xs[i] * frac_ys[i]) >> 8;
+    for (uint i = 0; i < total; i++)
         interpol_weight_1s[i] = ((255 - frac_xs[i]) * frac_ys[i]) >> 8;
+    for (uint i = 0; i < total; i++)
         interpol_weight_2s[i] = (frac_xs[i] * (255 - frac_ys[i])) >> 8;
-        interpol_weight_3s[i] = ((255 - frac_xs[i]) * (255 - frac_ys[i])) >> 8;
-    }
+    for (uint i = 0; i < total; i++)
+        interpol_weight_3s[i] = (255 - frac_xs[i]) * (255 - frac_ys[i]) >> 8;
 
     for (uint i = 0; i < total; i++)
     {

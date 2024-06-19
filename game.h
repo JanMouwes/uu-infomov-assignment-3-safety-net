@@ -85,10 +85,14 @@ namespace Tmpl8
          * =============================================================================================================
          */
         uint next_tank1;
-        float2 tank1_poss[MAX_ARMY_SIZE];
+        union { float tank1_xs[MAX_ARMY_SIZE]; __m256 tank1_x8s[MAX_ARMY_SIZE / 8]; };
+        union { float tank1_ys[MAX_ARMY_SIZE]; __m256 tank1_y8s[MAX_ARMY_SIZE / 8]; };
+        
         int2 tank1_int_poss[MAX_ARMY_SIZE];
         int tank1_x1s[MAX_ARMY_SIZE], tank1_x2s[MAX_ARMY_SIZE], tank1_y1s[MAX_ARMY_SIZE], tank1_y2s[MAX_ARMY_SIZE];
-        uint tank1_frac_xs[MAX_ARMY_SIZE], tank1_frac_ys[MAX_ARMY_SIZE];
+        union { uint tank1_frac_xs[MAX_ARMY_SIZE]; __m256i tank1_frac_x8s[MAX_ARMY_SIZE / 8]; };
+        union { uint tank1_frac_ys[MAX_ARMY_SIZE]; __m256i tank1_frac_y8s[MAX_ARMY_SIZE / 8]; };
+        
         uint tank1_interpol_weight_0s[MAX_ARMY_SIZE], tank1_interpol_weight_1s[MAX_ARMY_SIZE], tank1_interpol_weight_2s[
                  MAX_ARMY_SIZE], tank1_interpol_weight_3s[MAX_ARMY_SIZE];
         uint tank1_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
@@ -99,12 +103,14 @@ namespace Tmpl8
 
         uint next_tank2;
         // Updated by Tank::Tick()
-        float2 tank2_poss[MAX_ARMY_SIZE];
+        union { float tank2_xs[MAX_ARMY_SIZE]; __m256 tank2_x8s[MAX_ARMY_SIZE / 8]; };
+        union { float tank2_ys[MAX_ARMY_SIZE]; __m256 tank2_y8s[MAX_ARMY_SIZE / 8]; };
         int tank2_frames[MAX_ARMY_SIZE];
         // Not updated by Tank::Tick()
         int2 tank2_int_poss[MAX_ARMY_SIZE];
         int tank2_x1s[MAX_ARMY_SIZE], tank2_x2s[MAX_ARMY_SIZE], tank2_y1s[MAX_ARMY_SIZE], tank2_y2s[MAX_ARMY_SIZE];
-        uint tank2_frac_xs[MAX_ARMY_SIZE], tank2_frac_ys[MAX_ARMY_SIZE];
+        union { uint tank2_frac_xs[MAX_ARMY_SIZE]; __m256i tank2_frac_x8s[MAX_ARMY_SIZE / 8]; };
+        union { uint tank2_frac_ys[MAX_ARMY_SIZE]; __m256i tank2_frac_y8s[MAX_ARMY_SIZE / 8]; };
         uint tank2_interpol_weight_0s[MAX_ARMY_SIZE], tank2_interpol_weight_1s[MAX_ARMY_SIZE], tank2_interpol_weight_2s[
                  MAX_ARMY_SIZE], tank2_interpol_weight_3s[MAX_ARMY_SIZE];
         uint tank2_pixss[MAX_ARMY_SIZE * (TANK_SPRITE_FRAME_SIZE - 1) * (TANK_SPRITE_FRAME_SIZE - 1)];
@@ -201,11 +207,13 @@ namespace Tmpl8
          */
         void DrawSprite(
             Sprite s,
-            float2* poss,
+            float* xs, float* ys,
+            __m256* x8s, __m256* y8s,
             int* frames,
             int2* int_poss,
             int* x1s, int* x2s, int* y1s, int* y2s,
             uint* frac_xs, uint* frac_ys,
+            __m256i *frac_x8s, __m256i *frac_y8s,
             uint* interpol_weight_0s, uint* interpol_weight_1s, uint* interpol_weight_2s, uint* interpol_weight_3s,
             uint* pixss,
             Surface** last_targets,
