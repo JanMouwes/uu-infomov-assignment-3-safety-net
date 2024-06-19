@@ -157,10 +157,6 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
 {
     int frameSize = sprite->frameSize;
     assert (frameSize < 1024);
-    uint p0s[1024];
-    uint p1s[1024];
-    uint p2s[1024];
-    uint p3s[1024];
     uint pixs[1024];
     // save the area of target that we are about to overwrite
     if (!backup) backup = new uint[sqr(sprite->frameSize + 1)];
@@ -223,32 +219,17 @@ void SpriteInstance::Draw(Surface* target, float2 pos, int frame)
             uint* src = sprite->pixels + frame * sprite->frameSize + v * stride;
             for (int u = 0; u < frameSize - 1; u++, src++)
             {
-                p0s[u] = ScaleColor(src[0], interpol_weight_0);
-            }
-
-            src = sprite->pixels + frame * sprite->frameSize + v * stride;
-            for (int u = 0; u < frameSize - 1; u++, src++)
-            {
-                p1s[u] = ScaleColor(src[1], interpol_weight_1);
-            }
-
-            src = sprite->pixels + frame * frameSize + v * stride;
-            for (int u = 0; u < sprite->frameSize - 1; u++, src++)
-            {
-                p2s[u] = ScaleColor(src[stride], interpol_weight_2);
-            }
-
-            src = sprite->pixels + frame * frameSize + v * stride;
-            for (int u = 0; u < sprite->frameSize - 1; u++, src++)
-            {
-                p3s[u] = ScaleColor(src[stride + 1], interpol_weight_3);
-            }
-
-            for (int u = 0; u < frameSize - 1; u++)
-            {
-                pixs[u] = p0s[u] + p1s[u] + p2s[u] + p3s[u];
+                pixs[u] = ScaleColor(src[0], interpol_weight_0);
+                pixs[u] += ScaleColor(src[1], interpol_weight_1);
             }
             
+            src = sprite->pixels + frame * frameSize + v * stride;
+            for (int u = 0; u < sprite->frameSize - 1; u++, src++)
+            {
+                pixs[u] += ScaleColor(src[stride], interpol_weight_2);
+                pixs[u] += ScaleColor(src[stride + 1], interpol_weight_3);
+            }
+
             for (int u = 0; u < frameSize - 1; u++, dst++)
             {
                 uint alpha = pixs[u] >> 24;
