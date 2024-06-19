@@ -60,7 +60,8 @@ void Game::Init()
         if (i % 3 == 0)
         {
             assert(next_sand0 < THIRD_MAX_SAND);
-            sand0_poss[next_sand0] = make_float2(x, y);
+            sand0_xs[next_sand0] = (float)x;
+            sand0_ys[next_sand0] = (float)y;
             sand0_dirs[next_sand0] = make_float2(-1 - RandomFloat() * 4, 0);
             sand0_colors[next_sand0] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand0_frame_changes[next_sand0] = d;
@@ -69,7 +70,8 @@ void Game::Init()
         else if (i % 3 == 1)
         {
             assert(next_sand1 < THIRD_MAX_SAND);
-            sand1_poss[next_sand1] = make_float2(x, y);
+            sand1_xs[next_sand1] = (float)x;
+            sand1_ys[next_sand1] = (float)y;
             sand1_dirs[next_sand1] = make_float2(-1 - RandomFloat() * 4, 0);
             sand1_colors[next_sand1] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand1_frame_changes[next_sand1] = d;
@@ -78,7 +80,8 @@ void Game::Init()
         else
         {
             assert(next_sand2 < THIRD_MAX_SAND);
-            sand2_poss[next_sand2] = make_float2(x, y);
+            sand2_xs[next_sand2] = (float)x;
+            sand2_ys[next_sand2] = (float)y;
             sand2_dirs[next_sand2] = make_float2(-1 - RandomFloat() * 4, 0);
             sand2_colors[next_sand2] = map.bitmap->pixels[x + y * map.bitmap->width];
             sand2_frame_changes[next_sand2] = d;
@@ -158,9 +161,9 @@ void Game::Tick(float deltaTime)
     }
     if (!is_tick_paused)
     {
-        TickSand(sand0_poss, sand0_dirs, sand0_frames, sand0_frame_changes, next_sand0);
-        TickSand(sand1_poss, sand1_dirs, sand1_frames, sand1_frame_changes, next_sand1);
-        TickSand(sand2_poss, sand2_dirs, sand2_frames, sand2_frame_changes, next_sand2);
+        TickSand(sand0_xs, sand0_ys, sand0_dirs, sand0_frames, sand0_frame_changes, next_sand0);
+        TickSand(sand1_xs, sand1_ys, sand1_dirs, sand1_frames, sand1_frame_changes, next_sand1);
+        TickSand(sand2_xs, sand2_ys, sand2_dirs, sand2_frames, sand2_frame_changes, next_sand2);
         for (int i = 0; i < (int)actorPool.size(); i++)
             if (!actorPool[i]->Tick())
             {
@@ -233,14 +236,15 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_tank2
     );
-    /*
     DrawSprite(
         *bush[0],
-        sand0_poss,
+        sand0_xs, sand0_ys,
+        sand0_x8s, sand0_y8s,
         sand0_frames,
         sand0_int_poss,
         sand0_x1s, sand0_x2s, sand0_y1s, sand0_y2s,
         sand0_frac_xs, sand0_frac_ys,
+        sand0_frac_x8s, sand0_frac_y8s,
         sand0_interpol_weight_0s, sand0_interpol_weight_1s, sand0_interpol_weight_2s, sand0_interpol_weight_3s,
         sand0_pixss,
         sand0_last_targets,
@@ -251,11 +255,13 @@ void Game::Tick(float deltaTime)
     );
     DrawSprite(
         *bush[1],
-        sand1_poss,
+        sand1_xs, sand1_ys,
+        sand1_x8s, sand1_y8s,
         sand1_frames,
         sand1_int_poss,
         sand1_x1s, sand1_x2s, sand1_y1s, sand1_y2s,
         sand1_frac_xs, sand1_frac_ys,
+        sand1_frac_x8s, sand1_frac_y8s,
         sand1_interpol_weight_0s, sand1_interpol_weight_1s, sand1_interpol_weight_2s, sand1_interpol_weight_3s,
         sand1_pixss,
         sand1_last_targets,
@@ -263,14 +269,16 @@ void Game::Tick(float deltaTime)
         sand1_backups,
         map.bitmap,
         next_sand1
-    );
+        );
     DrawSprite(
         *bush[2],
-        sand2_poss,
+        sand2_xs, sand2_ys,
+        sand2_x8s, sand2_y8s,
         sand2_frames,
         sand2_int_poss,
         sand2_x1s, sand2_x2s, sand2_y1s, sand2_y2s,
         sand2_frac_xs, sand2_frac_ys,
+        sand2_frac_x8s, sand2_frac_y8s,
         sand2_interpol_weight_0s, sand2_interpol_weight_1s, sand2_interpol_weight_2s, sand2_interpol_weight_3s,
         sand2_pixss,
         sand2_last_targets,
@@ -279,7 +287,6 @@ void Game::Tick(float deltaTime)
         map.bitmap,
         next_sand2
     );
-    */
     
     int2 cursorPos = map.ScreenToMap(mousePos);
     pointer->Draw(map.bitmap, make_float2(cursorPos), 0);

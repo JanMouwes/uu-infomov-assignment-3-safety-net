@@ -120,7 +120,8 @@ namespace Tmpl8
 
         uint next_sand0;
         // For TickSand
-        float2 sand0_poss[THIRD_MAX_SAND];
+        union { float sand0_xs[THIRD_MAX_SAND]; __m256 sand0_x8s[THIRD_MAX_SAND / 8]; };
+        union { float sand0_ys[THIRD_MAX_SAND]; __m256 sand0_y8s[THIRD_MAX_SAND / 8]; };
         float2 sand0_dirs[THIRD_MAX_SAND];
         uint sand0_colors[THIRD_MAX_SAND];
         uint sand0_frame_changes[THIRD_MAX_SAND];
@@ -128,7 +129,8 @@ namespace Tmpl8
         // For DrawSprite
         int2 sand0_int_poss[THIRD_MAX_SAND];
         int sand0_x1s[THIRD_MAX_SAND], sand0_x2s[THIRD_MAX_SAND], sand0_y1s[THIRD_MAX_SAND], sand0_y2s[THIRD_MAX_SAND];
-        uint sand0_frac_xs[THIRD_MAX_SAND], sand0_frac_ys[THIRD_MAX_SAND];
+        union { uint sand0_frac_xs[THIRD_MAX_SAND]; __m256i sand0_frac_x8s[THIRD_MAX_SAND / 8]; };
+        union { uint sand0_frac_ys[THIRD_MAX_SAND]; __m256i sand0_frac_y8s[THIRD_MAX_SAND / 8]; };
         uint sand0_interpol_weight_0s[THIRD_MAX_SAND], sand0_interpol_weight_1s[THIRD_MAX_SAND],
              sand0_interpol_weight_2s[THIRD_MAX_SAND], sand0_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand0_pixss[THIRD_MAX_SAND * (BUSH_0_FRAME_SIZE - 1) * (BUSH_0_FRAME_SIZE - 1)];
@@ -138,7 +140,8 @@ namespace Tmpl8
 
         uint next_sand1;
         // For TickSand
-        float2 sand1_poss[THIRD_MAX_SAND];
+        union { float sand1_xs[THIRD_MAX_SAND]; __m256 sand1_x8s[THIRD_MAX_SAND / 8]; };
+        union { float sand1_ys[THIRD_MAX_SAND]; __m256 sand1_y8s[THIRD_MAX_SAND / 8]; };
         float2 sand1_dirs[THIRD_MAX_SAND];
         uint sand1_colors[THIRD_MAX_SAND];
         uint sand1_frame_changes[THIRD_MAX_SAND];
@@ -146,7 +149,8 @@ namespace Tmpl8
         // For DrawSprite
         int2 sand1_int_poss[THIRD_MAX_SAND];
         int sand1_x1s[THIRD_MAX_SAND], sand1_x2s[THIRD_MAX_SAND], sand1_y1s[THIRD_MAX_SAND], sand1_y2s[THIRD_MAX_SAND];
-        uint sand1_frac_xs[THIRD_MAX_SAND], sand1_frac_ys[THIRD_MAX_SAND];
+        union { uint sand1_frac_xs[THIRD_MAX_SAND]; __m256i sand1_frac_x8s[THIRD_MAX_SAND / 8]; };
+        union { uint sand1_frac_ys[THIRD_MAX_SAND]; __m256i sand1_frac_y8s[THIRD_MAX_SAND / 8]; };
         uint sand1_interpol_weight_0s[THIRD_MAX_SAND], sand1_interpol_weight_1s[THIRD_MAX_SAND],
              sand1_interpol_weight_2s[THIRD_MAX_SAND], sand1_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand1_pixss[THIRD_MAX_SAND * (BUSH_1_FRAME_SIZE - 1) * (BUSH_1_FRAME_SIZE - 1)];
@@ -156,7 +160,8 @@ namespace Tmpl8
         
         uint next_sand2;
         // For TickSand
-        float2 sand2_poss[THIRD_MAX_SAND];
+        union { float sand2_xs[THIRD_MAX_SAND]; __m256 sand2_x8s[THIRD_MAX_SAND / 8]; };
+        union { float sand2_ys[THIRD_MAX_SAND]; __m256 sand2_y8s[THIRD_MAX_SAND / 8]; };
         float2 sand2_dirs[THIRD_MAX_SAND];
         uint sand2_colors[THIRD_MAX_SAND];
         uint sand2_frame_changes[THIRD_MAX_SAND];
@@ -164,7 +169,8 @@ namespace Tmpl8
         // For DrawSprite
         int2 sand2_int_poss[THIRD_MAX_SAND];
         int sand2_x1s[THIRD_MAX_SAND], sand2_x2s[THIRD_MAX_SAND], sand2_y1s[THIRD_MAX_SAND], sand2_y2s[THIRD_MAX_SAND];
-        uint sand2_frac_xs[THIRD_MAX_SAND], sand2_frac_ys[THIRD_MAX_SAND];
+        union { uint sand2_frac_xs[THIRD_MAX_SAND]; __m256i sand2_frac_x8s[THIRD_MAX_SAND / 8]; };
+        union { uint sand2_frac_ys[THIRD_MAX_SAND]; __m256i sand2_frac_y8s[THIRD_MAX_SAND / 8]; };
         uint sand2_interpol_weight_0s[THIRD_MAX_SAND], sand2_interpol_weight_1s[THIRD_MAX_SAND],
              sand2_interpol_weight_2s[THIRD_MAX_SAND], sand2_interpol_weight_3s[THIRD_MAX_SAND];
         uint sand2_pixss[THIRD_MAX_SAND * (BUSH_2_FRAME_SIZE - 1) * (BUSH_2_FRAME_SIZE - 1)];
@@ -175,21 +181,21 @@ namespace Tmpl8
         /*
          * TickSand expects that each pointer argument is an array of shape [MAX_THIRD_SAND], and that total < THIRD_MAX_SAND. 
          */
-        void TickSand(float2* poss, float2* dirs, int* frames, uint* frame_changes, uint total)
+        void TickSand(float *xs, float *ys, float2* dirs, int* frames, uint* frame_changes, uint total)
         {
             for (uint i = 0; i < total; i++)
             {
-                poss[i] += dirs[i];
+                xs[i] += dirs[i].x;
                 dirs[i].y *= 0.95f;
-                if (poss[i].x < 0)
+                if (xs[i] < 0)
                 {
-                    poss[i].x = (float)(Game::map.bitmap->width - 1);
-                    poss[i].y = (float)(RandomUInt() % Game::map.bitmap->height);
+                    xs[i] = (float)(Game::map.bitmap->width - 1);
+                    ys[i] = (float)(RandomUInt() % Game::map.bitmap->height);
                     dirs[i] = make_float2(-1 - RandomFloat() * 2, 0);
                 }
                 for (int s = (int)Game::peaks.size(), i = 0; i < s; i++)
                 {
-                    float2 toPeak = make_float2(Game::peaks[i].x, Game::peaks[i].y) - poss[i];
+                    float2 toPeak = make_float2(Game::peaks[i].x, Game::peaks[i].y) - float2(xs[i], ys[i]);
                     float g = Game::peaks[i].z * 0.02f / sqrtf(dot(toPeak, toPeak));
                     toPeak = normalize(toPeak);
                     dirs[i].y -= toPeak.y * g;
