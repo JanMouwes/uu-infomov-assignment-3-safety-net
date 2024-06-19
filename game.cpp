@@ -124,11 +124,11 @@ void Game::Tick(float deltaTime)
     // update and render actors
     pointer->Remove();
     for (int s = (int)sand.size(), i = s - 1; i >= 0; i--) sand[i]->Remove();
-    RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
-    RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
+    // RemoveSprite(*tank2, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
+    // RemoveSprite(*tank1, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
     for (int s = (int)actorPool.size(), i = s - 1; i >= 0; i--)
     {
-        if (actorPool[i]->GetType() == Actor::TANK) continue;
+        // if (actorPool[i]->GetType() == Actor::TANK) continue;
         actorPool[i]->Remove();
     }
     if (!is_tick_paused)
@@ -157,7 +157,7 @@ void Game::Tick(float deltaTime)
             tank1_poss[next_tank1] = actorPool[i]->pos;
             tank1_frames[next_tank1] = actorPool[i]->frame;
             next_tank1++;
-            continue;
+            // continue;
         }
         if (actorPool[i]->GetType() == Actor::TANK && ((Tank*)actorPool[i])->army == 1)
         {
@@ -165,13 +165,13 @@ void Game::Tick(float deltaTime)
             tank2_poss[next_tank2] = actorPool[i]->pos;
             tank2_frames[next_tank2] = actorPool[i]->frame;
             next_tank2++;
-            continue;
+            // continue;
         }
         actorPool[i]->Draw();
     }
 
-    DrawSprite(*tank1, tank1_poss, tank1_frames, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
-    DrawSprite(*tank2, tank2_poss, tank2_frames, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
+    // DrawSprite(*tank1, tank1_poss, tank1_frames, map.bitmap, tank1_backups, tank1_last_targets, tank1_last_poss, next_tank1);
+    // DrawSprite(*tank2, tank2_poss, tank2_frames, map.bitmap, tank2_backups, tank2_last_targets, tank2_last_poss, next_tank2);
 
     for (int s = (int)sand.size(), i = 0; i < s; i++) sand[i]->Draw();
     int2 cursorPos = map.ScreenToMap(mousePos);
