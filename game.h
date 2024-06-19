@@ -11,8 +11,8 @@ inline uint To1D(uint x, uint y, uint z, uint square)
 }
 
 // Sandstorm related constants
-#define MAX_SAND 7500 // are created total
-#define THIRD_MAX_SAND 2500 // distributed evenly across 3 different sand sprites
+#define MAX_SAND 7488 // are created total, is divisible by 3 and 8
+#define THIRD_MAX_SAND 2496 // distributed evenly across 3 different sand sprites
 #define BUSH_0_FRAME_SIZE 10
 #define BUSH_0_FRAMES 256
 #define BUSH_1_FRAME_SIZE 14
